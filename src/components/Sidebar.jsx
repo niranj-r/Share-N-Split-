@@ -25,7 +25,7 @@ export default function Sidebar() {
     const isSettingsActive = pathname.startsWith('/settings');
 
     return (
-        <>
+        <div className="desktop-only">
             <motion.aside
                 className="sidebar glass"
                 animate={{ width: collapsed ? 64 : 240 }}
@@ -87,7 +87,7 @@ export default function Sidebar() {
 
             {/* Offset for content */}
             <div style={{ width: collapsed ? 64 : 240, flexShrink: 0, transition: 'width 0.25s' }} />
-        </>
+        </div>
     );
 }
 

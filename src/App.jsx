@@ -4,6 +4,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Sidebar from './components/Sidebar';
+import MobileNav from './components/MobileNav';
+import TopNav from './components/TopNav';
 import LoadingSpinner from './components/LoadingSpinner';
 
 import LoginPage from './pages/LoginPage';
@@ -30,7 +32,7 @@ function PageWrapper({ children }) {
   );
 }
 
-// Protected route wrapper — renders layout + sidebar
+// Protected route wrapper — renders layout + sidebar + mobile navs
 function AppShell({ theme, toggleTheme }) {
   const { currentUser } = useAuth();
   const location = useLocation();
@@ -39,7 +41,13 @@ function AppShell({ theme, toggleTheme }) {
 
   return (
     <div className="app-layout">
+      {/* Desktop Sidebar (hidden on mobile via CSS) */}
       <Sidebar />
+
+      {/* Mobile Navs (hidden on desktop via CSS) */}
+      <TopNav />
+      <MobileNav />
+
       <main className="main-content">
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, Users, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, Users, ChevronRight, Pencil } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { subscribeGroups, subscribeSharedExpenses, subscribeBudgets, addGroup, deleteGroup, addSharedExpense, updateSharedExpense, deleteSharedExpense, formatINR } from '../services';
 import Modal from '../components/Modal';
