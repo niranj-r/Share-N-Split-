@@ -80,7 +80,7 @@ export default function LoginPage() {
 function KryseLogo({ size = 48 }) {
     return (
         <motion.img
-            src="/kryselogo.svg"
+            src="/kryselogo.png"
             alt="KRYSE Logo"
             width={size}
             height={(size / 151) * 200}

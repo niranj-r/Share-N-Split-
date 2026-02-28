@@ -16,7 +16,7 @@ export default function GroupsPage() {
     const [groupModal, setGroupModal] = useState(false);
     const [expModal, setExpModal] = useState(false);
     const [groupForm, setGroupForm] = useState({ name: '', description: '', members: '' });
-    const [expForm, setExpForm] = useState({ description: '', amount: '', paidBy: currentUser.displayName, date: today() });
+    const [expForm, setExpForm] = useState({ description: '', amount: '', paidBy: currentUser.email, date: today() });
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
@@ -61,7 +61,7 @@ export default function GroupsPage() {
                 members,
             });
             setExpModal(false);
-            setExpForm({ description: '', amount: '', paidBy: currentUser.displayName, date: today() });
+            setExpForm({ description: '', amount: '', paidBy: currentUser.email, date: today() });
         } finally { setSaving(false); }
     }
 
@@ -216,7 +216,11 @@ export default function GroupsPage() {
                     </div>
                     <div className="input-group">
                         <label>Paid By</label>
-                        <input className="input" placeholder="Your name" value={expForm.paidBy} onChange={e => setExpForm(f => ({ ...f, paidBy: e.target.value }))} required />
+                        <select className="input" value={expForm.paidBy} onChange={e => setExpForm(f => ({ ...f, paidBy: e.target.value }))} required>
+                            {selectedGroup?.members?.map(m => (
+                                <option key={m} value={m}>{m === currentUser.email ? `${m} (You)` : m}</option>
+                            )) || <option value={currentUser.email}>{currentUser.email} (You)</option>}
+                        </select>
                     </div>
                     {selectedGroup && (
                         <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
