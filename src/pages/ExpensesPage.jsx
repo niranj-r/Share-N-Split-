@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { subscribeExpenses, subscribeBudgets, subscribeTrips, addExpense, updateExpense, deleteExpense, CATEGORIES, catClass, formatINR } from '../services';
+import { subscribeExpenses, subscribeBudgets, subscribeTrips, subscribeUserSharedExpenses, addExpense, updateExpense, deleteExpense, CATEGORIES, catClass, formatINR } from '../services';
 import Modal from '../components/Modal';
 import './PageShared.css';
 
@@ -11,6 +11,7 @@ const today = () => new Date().toISOString().split('T')[0];
 export default function ExpensesPage() {
     const { currentUser } = useAuth();
     const [expenses, setExpenses] = useState([]);
+    const [sharedExpenses, setSharedExpenses] = useState([]);
     const [budgets, setBudgets] = useState([]);
     const [trips, setTrips] = useState([]);
     const [modal, setModal] = useState(false);
@@ -26,7 +27,8 @@ export default function ExpensesPage() {
         const u1 = subscribeExpenses(uid, setExpenses);
         const u2 = subscribeBudgets(uid, setBudgets);
         const u3 = subscribeTrips(uid, setTrips);
-        return () => { u1(); u2(); u3(); };
+        const u4 = subscribeUserSharedExpenses(currentUser.email, setSharedExpenses);
+        return () => { u1(); u2(); u3(); u4(); };
     }, [currentUser]);
 
     function openNew() { setEditing(null); setForm({ title: '', amount: '', category: 'Food', date: today(), budgetId: '', tripId: '', notes: '' }); setModal(true); }
@@ -42,7 +44,23 @@ export default function ExpensesPage() {
         } finally { setSaving(false); }
     }
 
-    const filtered = expenses.filter(e => {
+    // Dynamically merge personal and shared expenses
+    const virtualSharedExpenses = sharedExpenses.map(se => ({
+        id: `shared_${se.id}`,
+        title: `[Shared] ${se.title}`,
+        category: se.category || 'Others',
+        amount: se.splitAmount || 0,
+        date: se.date,
+        budgetId: se.budgetId || '',
+        tripId: '', // Assuming group expenses aren't linked to personal trips for now
+        isShared: true
+    }));
+
+    const allExpenses = [...expenses, ...virtualSharedExpenses].sort((a, b) => {
+        return (b.date || '').localeCompare(a.date || '');
+    });
+
+    const filtered = allExpenses.filter(e => {
         if (filterCat && e.category !== filterCat) return false;
         if (filterTrip && e.tripId !== filterTrip) return false;
         if (search && !e.title?.toLowerCase().includes(search.toLowerCase())) return false;
@@ -117,10 +135,14 @@ export default function ExpensesPage() {
                                     <td style={{ fontSize: '0.82rem' }}>{budgets.find(b => b.id === e.budgetId)?.name || '—'}</td>
                                     <td className="exp-amount">{formatINR(e.amount)}</td>
                                     <td>
-                                        <div className="exp-actions">
-                                            <button className="btn-icon" onClick={() => openEdit(e)}><Pencil size={13} /></button>
-                                            <button className="btn-icon" onClick={async () => { if (confirm('Delete expense?')) await deleteExpense(e.id); }}><Trash2 size={13} /></button>
-                                        </div>
+                                        {!e.isShared ? (
+                                            <div className="exp-actions">
+                                                <button className="btn-icon" onClick={() => openEdit(e)}><Pencil size={13} /></button>
+                                                <button className="btn-icon" onClick={async () => { if (confirm('Delete expense?')) await deleteExpense(e.id); }}><Trash2 size={13} /></button>
+                                            </div>
+                                        ) : (
+                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>From Group</span>
+                                        )}
                                     </td>
                                 </motion.tr>
                             ))}

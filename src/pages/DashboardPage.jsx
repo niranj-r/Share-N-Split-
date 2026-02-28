@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { TrendingDown, TrendingUp, Wallet, MapPin, Plus } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { useAuth } from '../context/AuthContext';
-import { subscribeBudgets, subscribeExpenses, subscribeTrips, formatINR, catClass, CATEGORIES } from '../services';
+import { subscribeBudgets, subscribeExpenses, subscribeTrips, subscribeUserSharedExpenses, formatINR, catClass, CATEGORIES } from '../services';
 import BudgetRing from '../components/BudgetRing';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
@@ -21,6 +21,7 @@ export default function DashboardPage() {
     const navigate = useNavigate();
     const [budgets, setBudgets] = useState([]);
     const [expenses, setExpenses] = useState([]);
+    const [sharedExpenses, setSharedExpenses] = useState([]);
     const [trips, setTrips] = useState([]);
 
     useEffect(() => {
@@ -28,17 +29,32 @@ export default function DashboardPage() {
         const u1 = subscribeBudgets(uid, setBudgets);
         const u2 = subscribeExpenses(uid, setExpenses);
         const u3 = subscribeTrips(uid, setTrips);
-        return () => { u1(); u2(); u3(); };
+        const u4 = subscribeUserSharedExpenses(currentUser.email, setSharedExpenses);
+        return () => { u1(); u2(); u3(); u4(); };
     }, [currentUser]);
 
+    const virtualSharedExpenses = sharedExpenses.map(se => ({
+        id: `shared_${se.id}`,
+        title: `[Shared] ${se.title}`,
+        category: se.category || 'Others',
+        amount: se.splitAmount || 0,
+        date: se.date,
+        budgetId: se.budgetId || '',
+        isShared: true
+    }));
+
+    const allExpenses = [...expenses, ...virtualSharedExpenses].sort((a, b) => {
+        return (b.date || '').localeCompare(a.date || '');
+    });
+
     const totalBudget = budgets.reduce((s, b) => s + Number(b.totalAmount || 0), 0);
-    const totalSpent = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+    const totalSpent = allExpenses.reduce((s, e) => s + Number(e.amount || 0), 0);
     const totalLeft = totalBudget - totalSpent;
 
     // Category pie data
     const catData = CATEGORIES.map(cat => ({
         name: cat,
-        value: expenses.filter(e => e.category === cat).reduce((s, e) => s + Number(e.amount || 0), 0),
+        value: allExpenses.filter(e => e.category === cat).reduce((s, e) => s + Number(e.amount || 0), 0),
     })).filter(d => d.value > 0);
 
     // Monthly bar data (last 6 months)
@@ -49,7 +65,7 @@ export default function DashboardPage() {
             const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
             const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
             const label = d.toLocaleDateString('en-IN', { month: 'short' });
-            const total = expenses
+            const total = allExpenses
                 .filter(e => e.date?.startsWith(key))
                 .reduce((s, e) => s + Number(e.amount || 0), 0);
             months.push({ name: label, amount: total });
@@ -57,7 +73,7 @@ export default function DashboardPage() {
         return months;
     })();
 
-    const recentExpenses = expenses.slice(0, 6);
+    const recentExpenses = allExpenses.slice(0, 6);
 
     return (
         <div className="dashboard-page">
@@ -144,7 +160,7 @@ export default function DashboardPage() {
                     ) : (
                         <div className="budget-rings-row">
                             {budgets.slice(0, 5).map(b => {
-                                const spent = expenses
+                                const spent = allExpenses
                                     .filter(e => e.budgetId === b.id)
                                     .reduce((s, e) => s + Number(e.amount || 0), 0);
                                 return (

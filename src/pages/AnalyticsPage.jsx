@@ -6,7 +6,7 @@ import {
     LineChart, Line,
 } from 'recharts';
 import { useAuth } from '../context/AuthContext';
-import { subscribeBudgets, subscribeExpenses, CATEGORIES, formatINR } from '../services';
+import { subscribeBudgets, subscribeExpenses, subscribeUserSharedExpenses, CATEGORIES, formatINR } from '../services';
 import './PageShared.css';
 
 const PIE_COLORS = ['#FF3300', '#818cf8', '#f97316', '#22d3ee', '#f472b6', '#94a3b8'];
@@ -15,18 +15,30 @@ const TIP_STYLE = { background: 'var(--card)', border: '1px solid var(--border)'
 export default function AnalyticsPage() {
     const { currentUser } = useAuth();
     const [expenses, setExpenses] = useState([]);
+    const [sharedExpenses, setSharedExpenses] = useState([]);
     const [budgets, setBudgets] = useState([]);
 
     useEffect(() => {
         const uid = currentUser.uid;
         const u1 = subscribeExpenses(uid, setExpenses);
         const u2 = subscribeBudgets(uid, setBudgets);
-        return () => { u1(); u2(); };
+        const u3 = subscribeUserSharedExpenses(currentUser.email, setSharedExpenses);
+        return () => { u1(); u2(); u3(); };
     }, [currentUser]);
+
+    const virtualSharedExpenses = sharedExpenses.map(se => ({
+        id: `shared_${se.id}`,
+        category: se.category || 'Others',
+        amount: se.splitAmount || 0,
+        date: se.date,
+        budgetId: se.budgetId || ''
+    }));
+
+    const allExpenses = [...expenses, ...virtualSharedExpenses];
 
     const catData = CATEGORIES.map((cat, i) => ({
         name: cat,
-        value: expenses.filter(e => e.category === cat).reduce((s, e) => s + Number(e.amount || 0), 0),
+        value: allExpenses.filter(e => e.category === cat).reduce((s, e) => s + Number(e.amount || 0), 0),
         color: PIE_COLORS[i],
     })).filter(d => d.value > 0);
 
@@ -37,14 +49,14 @@ export default function AnalyticsPage() {
             const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
             const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
             const label = d.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' });
-            const total = expenses.filter(e => e.date?.startsWith(key)).reduce((s, e) => s + Number(e.amount || 0), 0);
+            const total = allExpenses.filter(e => e.date?.startsWith(key)).reduce((s, e) => s + Number(e.amount || 0), 0);
             months.push({ name: label, amount: total });
         }
         return months;
     })();
 
     const budgetUtils = budgets.map(b => {
-        const spent = expenses.filter(e => e.budgetId === b.id).reduce((s, e) => s + Number(e.amount || 0), 0);
+        const spent = allExpenses.filter(e => e.budgetId === b.id).reduce((s, e) => s + Number(e.amount || 0), 0);
         const pct = Number(b.totalAmount) > 0 ? Math.min(100, (spent / Number(b.totalAmount)) * 100) : 0;
         return { ...b, spent, pct };
     });
