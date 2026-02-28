@@ -1,6 +1,6 @@
 // Shared helpers for Firestore CRUD operations
 import {
-    collection, query, where, orderBy, onSnapshot,
+    collection, query, where, orderBy, onSnapshot, getDocs,
     addDoc, updateDoc, deleteDoc, doc, serverTimestamp,
 } from 'firebase/firestore';
 import { db } from './firebase';
@@ -74,7 +74,14 @@ export function addGroup(uid, data) {
     return addDoc(collection(db, 'groups'), { ...data, createdBy: uid, createdAt: serverTimestamp() });
 }
 
-export function deleteGroup(id) {
+export async function deleteGroup(id) {
+    // Cascade delete associated shared expenses
+    const q = query(collection(db, 'sharedExpenses'), where('groupId', '==', id));
+    const snap = await getDocs(q);
+    const deletePromises = snap.docs.map(d => deleteDoc(d.ref));
+    await Promise.all(deletePromises);
+
+    // Delete the group itself
     return deleteDoc(doc(db, 'groups', id));
 }
 
