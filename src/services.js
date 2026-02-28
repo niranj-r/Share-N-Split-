@@ -84,8 +84,22 @@ export function subscribeSharedExpenses(groupId, callback) {
     return onSnapshot(q, snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
 }
 
+// All shared expenses involving a user globally (for Budgets)
+export function subscribeUserSharedExpenses(email, callback) {
+    const q = query(collection(db, 'sharedExpenses'), where('members', 'array-contains', email), orderBy('date', 'desc'));
+    return onSnapshot(q, snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+}
+
 export function addSharedExpense(data) {
-    return addDoc(collection(db, 'sharedExpenses'), { ...data, createdAt: serverTimestamp() });
+    return addDoc(collection(db, 'sharedExpenses'), { ...data, createdAt: serverTimestamp(), paidBackBy: [] });
+}
+
+export function updateSharedExpense(id, data) {
+    return updateDoc(doc(db, 'sharedExpenses', id), data);
+}
+
+export function deleteSharedExpense(id) {
+    return deleteDoc(doc(db, 'sharedExpenses', id));
 }
 
 // ── Utilities ──────────────────────────────────────────

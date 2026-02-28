@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { subscribeBudgets, subscribeExpenses, addBudget, updateBudget, deleteBudget, formatINR } from '../services';
+import { subscribeBudgets, subscribeExpenses, subscribeUserSharedExpenses, addBudget, updateBudget, deleteBudget, formatINR } from '../services';
 import BudgetRing from '../components/BudgetRing';
 import Modal from '../components/Modal';
 import './PageShared.css';
@@ -13,6 +13,7 @@ export default function BudgetsPage() {
     const { currentUser } = useAuth();
     const [budgets, setBudgets] = useState([]);
     const [expenses, setExpenses] = useState([]);
+    const [sharedExpenses, setSharedExpenses] = useState([]);
     const [modal, setModal] = useState(false);
     const [editing, setEditing] = useState(null);
     const [form, setForm] = useState({ name: '', totalAmount: '', startDate: today(), endDate: '' });
@@ -21,7 +22,8 @@ export default function BudgetsPage() {
     useEffect(() => {
         const u1 = subscribeBudgets(currentUser.uid, setBudgets);
         const u2 = subscribeExpenses(currentUser.uid, setExpenses);
-        return () => { u1(); u2(); };
+        const u3 = subscribeUserSharedExpenses(currentUser.email, setSharedExpenses);
+        return () => { u1(); u2(); u3(); };
     }, [currentUser]);
 
     function openNew() { setEditing(null); setForm({ name: '', totalAmount: '', startDate: today(), endDate: '' }); setModal(true); }
@@ -41,7 +43,47 @@ export default function BudgetsPage() {
         if (confirm('Delete this budget?')) await deleteBudget(id);
     }
 
-    const spentFor = (bId) => expenses.filter(e => e.budgetId === bId).reduce((s, e) => s + Number(e.amount || 0), 0);
+    const spentFor = (bId) => {
+        // 1. Personal expenses
+        const personal = expenses.filter(e => e.budgetId === bId).reduce((s, e) => s + Number(e.amount || 0), 0);
+
+        // 2. Shared expenses where the user is the Payer
+        const shared = sharedExpenses.filter(e => e.budgetId === bId && e.paidBy === currentUser.email).reduce((s, e) => {
+            const split = e.splitAmount || 0;
+            const paidBackBy = e.paidBackBy || [];
+
+            // Total cost they paid initially
+            let totalCostSpent = Number(e.amount || 0);
+
+            // Subtract portions that other members have already paid back
+            e.members.forEach(m => {
+                if (m !== currentUser.email && paidBackBy.includes(m)) {
+                    totalCostSpent -= split;
+                }
+            });
+
+            return s + totalCostSpent;
+        }, 0);
+
+        return personal + shared;
+    };
+
+    // Calculate how much money is expected back for a specific budget
+    const pendingPaybackFor = (bId) => {
+        return sharedExpenses.filter(e => e.budgetId === bId && e.paidBy === currentUser.email).reduce((s, e) => {
+            const split = e.splitAmount || 0;
+            const paidBackBy = e.paidBackBy || [];
+
+            let pending = 0;
+            e.members.forEach(m => {
+                if (m !== currentUser.email && !paidBackBy.includes(m)) {
+                    pending += split;
+                }
+            });
+
+            return s + pending;
+        }, 0);
+    };
 
     return (
         <div className="page">
@@ -60,6 +102,7 @@ export default function BudgetsPage() {
                 <div className="budget-grid">
                     {budgets.map((b, i) => {
                         const spent = spentFor(b.id);
+                        const pending = pendingPaybackFor(b.id);
                         const left = Number(b.totalAmount) - spent;
                         const pct = Math.min(100, (spent / Number(b.totalAmount)) * 100);
                         return (
@@ -84,6 +127,11 @@ export default function BudgetsPage() {
                                     <div className="bnum"><span className="stat-label">Spent</span><span className="bnum-val red">{formatINR(spent)}</span></div>
                                     <div className="bnum"><span className="stat-label">Left</span><span className={`bnum-val ${left < 0 ? 'red' : 'green'}`}>{formatINR(Math.abs(left))}{left < 0 ? ' over' : ''}</span></div>
                                 </div>
+                                {pending > 0 && (
+                                    <div style={{ marginTop: 12, fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center', background: 'var(--bg-secondary)', padding: '6px', borderRadius: 6 }}>
+                                        To receive back: <strong style={{ color: 'var(--accent)' }}>{formatINR(pending)}</strong>
+                                    </div>
+                                )}
                                 <div className="progress-bar-track">
                                     <div className="progress-bar-fill" style={{ width: `${pct}%`, background: left < 0 ? '#ef4444' : left / Number(b.totalAmount) < 0.2 ? '#f59e0b' : '#22c55e' }} />
                                 </div>
