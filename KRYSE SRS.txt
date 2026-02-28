@@ -1,0 +1,333 @@
+KRYSE Expense Management and Trip Planning System
+
+1. Introduction
+1.1 Purpose
+
+The purpose of this document is to describe the functional and non-functional requirements of the KRYSE Expense Management and Trip Planning System, a modern, web-based application designed to help users record, monitor, organize trips, and manage their personal and shared financial expenses with a futuristic UI.
+
+The system enables users to:
+
+- Track daily and trip-specific expenses
+- Categorize spending
+- Create trip plans and pre-declare budgets
+- Monitor real-time budget tracking (money spent vs. money remaining)
+- Analyze spending patterns using visual, animated charts
+- Manage shared expenses within groups (e.g., travel groups)
+- Split expenses seamlessly among multiple users
+
+This SRS document is intended for developers, project evaluators, designers, and stakeholders to understand the system requirements, UI/UX expectations, and expected functionalities.
+
+1.2 Intended Audience
+
+This document is intended for:
+
+Audience	Description
+Developers	To understand system requirements and implementation
+Designers	To align UI/UX with KRYSE brand guidelines (futuristic, bold)
+Project Guides	To evaluate project structure
+End Users	To understand system capabilities
+Testers	To design test cases based on system requirements
+
+1.3 Product Scope
+
+The KRYSE Expense Management and Trip Planning System is a web application that helps individuals and groups manage their financial transactions and travel budgets efficiently, wrapped in a premium, motion-driven user interface.
+
+The system provides:
+
+- Secure user authentication
+- Trip planning and dedicated trip budget management
+- Real-time budget tracking showing remaining funds
+- Expense recording and categorization
+- Financial analytics through interactive 3D/animated charts
+- Group-based expense sharing and splitting
+
+The system is designed to be scalable, responsive, and aesthetically aligned with KRYSE's modern, tech-driven brand identity.
+
+1.4 Definitions, Acronyms, and Abbreviations
+Term	Meaning
+CRUD	Create, Read, Update, Delete operations
+UI	User Interface
+API	Application Programming Interface
+Firebase	Backend-as-a-Service platform
+Firestore	NoSQL cloud database by Firebase
+Authentication	Process of verifying user identity
+Dashboard	Main interface displaying summarized data and floating cards
+
+1.5 Document Overview
+
+This document describes:
+
+- Overall system description
+- Functional requirements
+- Non-functional requirements (including KRYSE Design System)
+- System architecture
+- Database structure
+- User interface requirements
+- Constraints and assumptions
+
+2. Overall Description
+2.1 Product Perspective
+
+The system is a cloud-based web application that integrates multiple services to provide expense management, budgeting, and trip planning features, utilizing the modern KRYSE design language.
+
+The architecture includes:
+
+- Frontend: React.js application
+- Animation: Framer Motion + GSAP
+- Backend Services: Firebase
+- Database: Firebase Firestore
+- Authentication: Firebase Authentication
+- Visualization: Chart.js / Recharts
+
+2.2 System Architecture
++--------------------+
+|       User         |
+|   (Web Browser)    |
++---------+----------+
+          |
+          v
++--------------------+
+|    React Frontend  |
+|   UI Components    |
+| (Framer & GSAP)    |
++---------+----------+
+          |
+          v
++--------------------------+
+|      Firebase Services   |
+|                          |
+|  Firebase Authentication |
+|        Firestore DB      |
++--------------------------+
+
+2.3 Product Functions
+
+The major functions of the system include:
+
+1. User Management
+- Register new users
+- Authenticate users
+- Manage user profiles with dark/light mode preferences
+
+2. Trip Planning & Budget Management
+- Pre-declare overall monthly budgets or specific trip budgets.
+- Real-time tracking of money spent vs money left.
+- Visual indicators (glow effects) when approaching budget limits.
+
+3. Expense Management
+- Add new expenses (linked to generic spending or specific trips)
+- View expenses
+- Modify expenses
+- Delete expenses
+
+4. Expense Categorization
+- Users can classify expenses into categories such as: Food, Travel, Shopping, Bills, Entertainment, Others.
+
+5. Analytics and Visualization
+- The system provides graphical insights using KRYSE brand colors (#FF3300, etc.):
+- Monthly spending trends
+- Category-based spending
+- Budget consumption tracking
+
+6. Group Expense Sharing
+- Users can:
+- Create travel/expense groups
+- Add members
+- Record shared expenses
+- Split expenses among members
+
+2.4 User Classes and Characteristics
+Registered User
+- Can set budgets and plan trips
+- Can add personal expenses
+- Can view and analyze expense data
+- Can join groups and share expenses
+
+Group Administrator (e.g., Trip Organizer)
+- Creates groups and trips
+- Manages group members
+- Sets overall group/trip budgets
+- Adds shared expenses
+
+Group Member
+- Participates in expense sharing
+- Views group transactions and remaining trip budget
+
+2.5 Operating Environment
+
+The system operates in the following environment:
+
+Component	Technology
+Client	Web Browser
+Frontend	React.js
+Styling	Custom CSS / Framer Motion
+Backend	Firebase
+Database	Firestore
+Charts	Chart.js / Recharts
+
+Supported browsers include: Chrome, Edge, Firefox, Safari
+
+2.6 Design Constraints
+
+The system must adhere to the following constraints:
+- Must use React.js for frontend development.
+- Must implement the KRYSE Design System (minimal, futuristic, geometric, motion-driven).
+- Must use Firebase Authentication and Firestore.
+- Must use Chart.js or Recharts for data visualization.
+
+2.7 Assumptions and Dependencies
+Assumptions
+- Users have stable internet access.
+- Firebase services remain operational.
+Dependencies
+- Firebase cloud platform.
+- Web browser compatibility.
+
+3. External Interface Requirements
+3.1 User Interface (Aligned with KRYSE Brand Overview)
+
+The UI must follow the KRYSE design language: minimal, futuristic, geometric, and motion-driven. Features dark/light modes, bold typography (Cabinet Grotesk & Bricolage Grotesque), and orange (#FF3300) accents. 
+
+Key Screens:
+
+1. Login/Registration Page
+- Glassmorphism surfaces, dark gray backgrounds.
+- Animated 3D triangle logo on load.
+
+2. Dashboard (Home)
+- Real-time Budget Card: prominently displaying "Total Budget", "Money Spent", and "Money Left" with a dynamic progress ring.
+- Floating cards with soft box-shadows and hover effects (scale 1.05).
+- Recent activity feed.
+
+3. Trip Planning Hub
+- Create a trip with start/end dates and a Pre-Declared Budget.
+- View trip-specific expense breakdown.
+
+4. Add Expense Modal
+- Transparent input fields with #444 borders, turning orange (#FF3300) with a glow effect on focus.
+- Dropdown to select if the expense belongs to a specific trip or general budget.
+
+5. Group Management Page
+- Manage travel groups, split checks automatically, show "who owes who" list.
+
+3.2 Software Interface
+Service	Purpose
+Firebase Authentication	User authentication
+Firebase Firestore	Data storage
+Chart.js / Recharts	Data visualization
+Framer Motion / GSAP	UI Micro-interactions and transitions
+
+3.3 Communication Interface
+- Firebase SDK
+- HTTPS protocol
+- Secure API requests
+
+4. System Features (Functional Requirements)
+4.1 User Registration
+Description: Allows users to create a new account.
+Processing: Register user using Firebase, store details in Firestore.
+
+4.2 User Login
+Description: Allows registered users to access the system.
+
+4.3 Add Expense
+Description: Allows users to record a financial transaction.
+Inputs:
+- Title
+- Amount
+- Category
+- Date
+- Trip/Budget Association (Optional)
+- Notes
+Output: Saved in Firestore, automatically deducted from tracking budget.
+
+4.4 Budget Management (New)
+Description: Allows users to pre-declare a budget for a month or a specific trip, and tracks the remaining amount.
+Inputs:
+- Budget Name (e.g., "Bali Trip 2026")
+- Total Amount
+- Timeframe (Start Date - End Date)
+Processing:
+- Calculate Money Left = Total Amount - Sum of Associated Expenses.
+- Trigger visual UI warnings if Money Left < 10%.
+Output: Dynamic budget tracking card updated in real-time.
+
+4.5 Trip Planning (New)
+Description: Group expenses and members under a specific trip context.
+Processing:
+- Create a Trip Entity in database.
+- Link an overall budget to the trip.
+- Link shared expenses specifically to the trip.
+
+4.6 View Expenses
+Description: Displays all expenses recorded by the user, with filters for specific trips/budgets.
+
+4.7 Update / Delete Expense
+Description: Modify or remove expense records. Adjusts remaining budget automatically.
+
+4.8 Expense Analytics
+Description: System provides graphical insights:
+- Category-wise spending
+- Budget utilization progress bar
+- Spending trends over time
+
+4.9 Group Creation & Shared Management
+Description: Create expense-sharing groups (ideal for trips). Record shared expenses.
+
+4.10 Expense Splitting Algorithm
+Description: System automatically calculates each member's share (e.g., ₹1000 shared by 4 = ₹250 each) and syncs it with their personal budget trackers.
+
+5. Non-Functional Requirements
+5.1 Performance
+- Page loading < 2 seconds.
+- Smooth animations (60fps) using Framer Motion.
+
+5.2 Security
+- Secure login (Firebase), encrypted storage.
+
+5.3 Usability & Brand Guidelines (KRYSE)
+- The UI must be minimal, futuristic, geometric, and motion-driven.
+- Typography: Cabinet Grotesk for Headings, Bricolage Grotesque for Body.
+- Colors: Black (#171717) primary bg, White (#FFFFFF) text, Orange (#FF3300) accents and call-to-actions, with subtle neon glowing effects.
+- Interactions: Hover transitions, glass surfaces, and micro-interactions (e.g., 3 rotating triangles for loading, checkmark draw animation for success).
+
+5.4 Reliability
+- Consistent database transactions with minimal downtime.
+
+5.5 Scalability
+- Cloud-based scaling through Firebase supporting thousands of users.
+
+5.6 Maintainability
+- Modular React components reflecting the file structure (components/, pages/, animations/, styles/).
+
+6. Database Design (Updated)
+
+6.1 Users Collection (users)
+userId, name, email, preferences (theme), createdAt
+
+6.2 Budgets Collection (budgets)
+budgetId, userId, name, totalAmount, amountSpent, startDate, endDate, createdAt
+
+6.3 Trips Collection (trips)
+tripId, name, destination, startDate, endDate, budgetId, createdBy, createdAt
+
+6.4 Expenses Collection (expenses)
+expenseId, userId, tripId (optional), budgetId (optional), title, amount, category, date, notes, createdAt
+
+6.5 Groups Collection (groups)
+groupId, groupName, tripId (optional), createdBy, createdAt
+
+6.6 Group Members (groupMembers)
+groupId, userId
+
+6.7 Shared Expenses (sharedExpenses)
+expenseId, groupId, tripId (optional), paidBy, amount, description, date, splitAmount
+
+7. Future Enhancements
+- AI-based spending insights and automated categorization.
+- Smart suggestions for trip optimization based on left budget.
+- Savings goals tracker to afford future trips.
+- Bank account integration to auto-fetch expenses.
+
+8. Conclusion
+The KRYSE Expense Management and Trip Planning System provides a highly visual, futuristic, and reliable platform for individuals to organize trips, pre-declare budgets, and track expenses efficiently. By aligning powerful budgeting tools—such as real-time tracking of money left—with the geometric, bold KRYSE design language, the application serves as a premium tool for personal and collaborative financial management.

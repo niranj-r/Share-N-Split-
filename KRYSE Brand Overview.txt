@@ -1,0 +1,325 @@
+1. Brand Overview
+
+Brand Name: KRYSE
+Design Style: Modern, futuristic, geometric, tech-driven
+Visual Identity: Minimal + bold + animated UI
+
+The brand uses sharp geometric elements to represent precision, growth, and modern technology.
+
+2. Color System
+Primary Colors
+Color	HEX	Usage
+Black	#171717	Primary background
+White	#FFFFFF	Text & light surfaces
+Orange	#FF3300	Accent, highlights, CTAs
+Secondary Colors (UI Utility)
+Color	HEX	Usage
+Dark Gray	#262626	Card backgrounds
+Light Gray	#F5F5F5	Light mode surfaces
+Accent Glow	rgba(255,51,0,0.4)	Neon effects
+3. Typography
+Primary Font
+
+Cabinet Grotesk Variable
+
+Usage:
+
+Headings
+
+Hero sections
+
+Navigation
+
+Example:
+
+H1 — 64px
+H2 — 48px
+H3 — 32px
+
+Style:
+
+Bold
+
+Wide letter spacing
+
+Modern tech look
+
+Secondary Font
+
+Bricolage Grotesque
+
+Usage:
+
+Body text
+
+Buttons
+
+Labels
+
+Form fields
+
+Example:
+
+Body: 16px
+Small: 14px
+Caption: 12px
+4. Layout System
+Grid System
+12 Column Grid
+Max Width: 1280px
+Gutter: 24px
+Margin: 80px
+Spacing System
+Size	Value
+XS	4px
+SM	8px
+MD	16px
+LG	32px
+XL	64px
+5. UI Style
+Core Design Language
+
+The UI should be:
+
+Minimal
+
+Futuristic
+
+Geometric
+
+Motion driven
+
+Key elements:
+
+floating cards
+
+glow effects
+
+glass surfaces
+
+3D depth
+
+6. 3D Animated UI System
+Motion Philosophy
+
+Animations should feel:
+
+smooth
+
+responsive
+
+futuristic
+
+Animation Types
+1. Card Hover Animation
+scale(1 → 1.05)
+rotateX(0 → 6deg)
+shadow glow
+2. Button Hover
+background: orange → gradient glow
+translateY(-2px)
+3. Logo Animation
+
+On page load:
+
+triangles assemble
+fade in
+subtle glow pulse
+4. Page Transition
+
+Use Framer Motion
+
+opacity: 0 → 1
+y: 40px → 0px
+duration: 0.5s
+7. Component Design
+Buttons
+
+Primary Button
+
+background: #FF3300
+color: white
+border-radius: 12px
+padding: 14px 28px
+
+Hover
+
+box-shadow:
+0 0 20px rgba(255,51,0,0.5)
+Cards
+background: #262626
+border-radius: 16px
+padding: 24px
+box-shadow: soft
+
+Hover:
+
+transform: translateY(-6px)
+Input Fields
+background: transparent
+border: 1px solid #444
+border-radius: 10px
+padding: 12px
+
+Focus
+
+border-color: #FF3300
+glow effect
+8. Navigation Design
+
+Navbar:
+
+height: 80px
+background: rgba(23,23,23,0.8)
+backdrop-blur
+
+Items:
+
+Home
+Features
+Dashboard
+Pricing
+Login
+
+Hover:
+
+color: #FF3300
+9. Dashboard UI
+
+Main Sections:
+
+Sidebar
+Analytics Panel
+Expense Cards
+Graphs
+Activity Feed
+
+Charts use:
+
+Chart.js
+
+Recharts
+
+Chart Colors
+Primary: #FF3300
+Secondary: #FFFFFF
+Background: #171717
+10. Dark / Light Mode
+Dark Mode
+background: #171717
+text: #FFFFFF
+cards: #262626
+accent: #FF3300
+Light Mode
+background: #FFFFFF
+text: #171717
+cards: #F5F5F5
+accent: #FF3300
+11. Micro-Interactions
+Success Animation
+checkmark draw animation
+Loading
+3 rotating triangles (K logo style)
+Hover Feedback
+color transition 0.2s
+12. Icon Style
+
+Use:
+
+Lucide Icons
+
+Style:
+
+stroke width: 1.5
+minimal
+13. UI Components List
+
+Core components:
+
+Navbar
+Sidebar
+Buttons
+Cards
+Forms
+Charts
+Tables
+Modal
+Notifications
+14. Recommended Animation Libraries
+
+For your modern animated UI
+
+React Libraries
+Framer Motion
+GSAP
+Three.js
+
+Best combination:
+
+Framer Motion + GSAP
+15. Visual Design Style Reference
+
+Design inspiration:
+
+Linear
+
+Vercel
+
+Stripe
+
+Raycast
+
+Apple VisionOS UI
+
+16. Accessibility
+
+Ensure:
+
+color contrast
+
+keyboard navigation
+
+responsive layouts
+
+17. Performance Guidelines
+
+Use:
+
+lazy loading
+
+component splitting
+
+optimized SVG icons
+
+18. Responsive Breakpoints
+Device	Width
+Mobile	< 768px
+Tablet	768px
+Laptop	1024px
+Desktop	1280px
+19. File Structure
+
+React UI structure:
+
+src
+ ├ components
+ │   ├ Button
+ │   ├ Card
+ │   ├ Navbar
+ │   ├ Sidebar
+ │
+ ├ pages
+ │   ├ Dashboard
+ │   ├ Expenses
+ │
+ ├ animations
+ ├ styles
+20. Design Principles
+
+KRYSE UI should follow:
+
+Minimal
+Bold
+Futuristic
+Geometric
+Animated
