@@ -178,6 +178,12 @@
 }
 
 /* Expense table */
+.expense-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 .expense-filters {
     display: flex;
     gap: 10px;
@@ -192,6 +198,8 @@
 
 .expense-table {
     width: 100%;
+    min-width: 600px;
+    /* Forces scrolling on small screens instead of squishing */
     border-collapse: collapse;
 }
 

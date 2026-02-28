@@ -35,7 +35,7 @@ export default function DashboardPage() {
 
     const virtualSharedExpenses = sharedExpenses.map(se => ({
         id: `shared_${se.id}`,
-        title: `[Shared] ${se.title}`,
+        title: `[Shared] ${se.description}`,
         category: se.category || 'Others',
         amount: se.splitAmount || 0,
         date: se.date,

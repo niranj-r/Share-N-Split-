@@ -47,7 +47,7 @@ export default function ExpensesPage() {
     // Dynamically merge personal and shared expenses
     const virtualSharedExpenses = sharedExpenses.map(se => ({
         id: `shared_${se.id}`,
-        title: `[Shared] ${se.title}`,
+        title: `[Shared] ${se.description}`,
         category: se.category || 'Others',
         amount: se.splitAmount || 0,
         date: se.date,
@@ -110,44 +110,46 @@ export default function ExpensesPage() {
                 </div>
             ) : (
                 <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                    <table className="expense-table">
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Category</th>
-                                <th>Date</th>
-                                <th>Trip</th>
-                                <th>Budget</th>
-                                <th>Amount</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filtered.map((e, i) => (
-                                <motion.tr key={e.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }}>
-                                    <td>
-                                        <div>{e.title}</div>
-                                        {e.notes && <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{e.notes}</div>}
-                                    </td>
-                                    <td><span className={`badge ${catClass(e.category)}`}>{e.category}</span></td>
-                                    <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{e.date}</td>
-                                    <td style={{ fontSize: '0.82rem' }}>{trips.find(t => t.id === e.tripId)?.name || '—'}</td>
-                                    <td style={{ fontSize: '0.82rem' }}>{budgets.find(b => b.id === e.budgetId)?.name || '—'}</td>
-                                    <td className="exp-amount">{formatINR(e.amount)}</td>
-                                    <td>
-                                        {!e.isShared ? (
-                                            <div className="exp-actions">
-                                                <button className="btn-icon" onClick={() => openEdit(e)}><Pencil size={13} /></button>
-                                                <button className="btn-icon" onClick={async () => { if (confirm('Delete expense?')) await deleteExpense(e.id); }}><Trash2 size={13} /></button>
-                                            </div>
-                                        ) : (
-                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>From Group</span>
-                                        )}
-                                    </td>
-                                </motion.tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <div className="expense-table-wrapper">
+                        <table className="expense-table">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Date</th>
+                                    <th>Trip</th>
+                                    <th>Budget</th>
+                                    <th>Amount</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filtered.map((e, i) => (
+                                    <motion.tr key={e.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 }}>
+                                        <td>
+                                            <div>{e.title}</div>
+                                            {e.notes && <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{e.notes}</div>}
+                                        </td>
+                                        <td><span className={`badge ${catClass(e.category)}`}>{e.category}</span></td>
+                                        <td style={{ color: 'var(--text-muted)', fontSize: '0.82rem' }}>{e.date}</td>
+                                        <td style={{ fontSize: '0.82rem' }}>{trips.find(t => t.id === e.tripId)?.name || '—'}</td>
+                                        <td style={{ fontSize: '0.82rem' }}>{budgets.find(b => b.id === e.budgetId)?.name || '—'}</td>
+                                        <td className="exp-amount">{formatINR(e.amount)}</td>
+                                        <td>
+                                            {!e.isShared ? (
+                                                <div className="exp-actions">
+                                                    <button className="btn-icon" onClick={() => openEdit(e)}><Pencil size={13} /></button>
+                                                    <button className="btn-icon" onClick={async () => { if (confirm('Delete expense?')) await deleteExpense(e.id); }}><Trash2 size={13} /></button>
+                                                </div>
+                                            ) : (
+                                                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>From Group</span>
+                                            )}
+                                        </td>
+                                    </motion.tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
 
