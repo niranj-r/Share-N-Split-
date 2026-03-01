@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kryse.vercel.app/sitemap.xml
