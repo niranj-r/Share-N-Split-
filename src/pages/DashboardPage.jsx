@@ -37,7 +37,7 @@ export default function DashboardPage() {
         id: `shared_${se.id}`,
         title: `[Shared] ${se.description}`,
         category: se.category || 'Others',
-        amount: se.splitAmount || 0,
+        amount: se.splits?.[currentUser.email] || 0,
         date: se.date,
         budgetId: se.budgetId || '',
         isShared: true

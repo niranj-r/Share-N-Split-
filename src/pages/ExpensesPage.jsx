@@ -49,7 +49,7 @@ export default function ExpensesPage() {
         id: `shared_${se.id}`,
         title: `[Shared] ${se.description}`,
         category: se.category || 'Others',
-        amount: se.splitAmount || 0,
+        amount: se.splits?.[currentUser.email] || 0,
         date: se.date,
         budgetId: se.budgetId || '',
         tripId: '', // Assuming group expenses aren't linked to personal trips for now

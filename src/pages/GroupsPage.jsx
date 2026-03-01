@@ -3,10 +3,21 @@ import { motion } from 'framer-motion';
 import { Plus, Trash2, Users, ChevronRight, Pencil } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { subscribeGroups, subscribeSharedExpenses, subscribeBudgets, addGroup, deleteGroup, addSharedExpense, updateSharedExpense, deleteSharedExpense, formatINR } from '../services';
+import { calculateSplits, optimizeSettlements } from '../utils/splitUtils';
 import Modal from '../components/Modal';
 import './PageShared.css';
 
 const today = () => new Date().toISOString().split('T')[0];
+
+const INITIAL_EXP_FORM = {
+    description: '',
+    amount: '',
+    date: today(),
+    budgetId: '',
+    splitType: 'EQUAL',
+    payers: {}, // email -> amount
+    splitData: { percentages: {}, shares: {}, exactAmounts: {} }
+};
 
 export default function GroupsPage() {
     const { currentUser } = useAuth();
@@ -18,7 +29,7 @@ export default function GroupsPage() {
     const [expModal, setExpModal] = useState(false);
     const [editingExp, setEditingExp] = useState(null);
     const [groupForm, setGroupForm] = useState({ name: '', description: '', members: '' });
-    const [expForm, setExpForm] = useState({ description: '', amount: '', paidBy: currentUser.email, date: today(), budgetId: '' });
+    const [expForm, setExpForm] = useState({ ...INITIAL_EXP_FORM, payers: { [currentUser?.email || '']: '' } });
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
@@ -36,12 +47,15 @@ export default function GroupsPage() {
         return u;
     }, [selectedGroup]);
 
+    const members = selectedGroup?.members || [];
+
     async function handleCreateGroup(e) {
         e.preventDefault();
         setSaving(true);
         try {
-            const members = groupForm.members.split(',').map(m => m.trim()).filter(Boolean);
-            await addGroup(currentUser.uid, { name: groupForm.name, description: groupForm.description, members: [currentUser.email, ...members] });
+            const parsedMembers = groupForm.members.split(',').map(m => m.trim().toLowerCase()).filter(Boolean);
+            const allMembers = Array.from(new Set([currentUser.email, ...parsedMembers]));
+            await addGroup(currentUser.uid, { name: groupForm.name, description: groupForm.description, members: allMembers });
             setGroupModal(false);
             setGroupForm({ name: '', description: '', members: '' });
         } finally { setSaving(false); }
@@ -49,44 +63,50 @@ export default function GroupsPage() {
 
     async function handleAddSharedExpense(e) {
         e.preventDefault();
+        const totalAmount = Number(expForm.amount);
+        if (totalAmount <= 0) return alert('Enter a valid amount');
+
+        // Validate Payers match total
+        const totalPaid = Object.values(expForm.payers).reduce((s, a) => s + Number(a || 0), 0);
+        if (Math.abs(totalPaid - totalAmount) > 0.02) {
+            return alert(`Total paid (${totalPaid}) must equal the expense amount (${totalAmount})`);
+        }
+
+        // Calculate and validate splits
+        const splits = calculateSplits(totalAmount, expForm.splitType, members, expForm.splitData);
+        const totalSplit = Object.values(splits).reduce((s, a) => s + Number(a || 0), 0);
+        if (expForm.splitType === 'CUSTOM' || expForm.splitType === 'PERCENTAGE') {
+            if (Math.abs(totalSplit - totalAmount) > 0.1) {
+                return alert(`The customized splits do not add up perfectly. Check your math!`);
+            }
+        }
+
         setSaving(true);
         try {
-            const group = selectedGroup;
-            const members = group.members || [currentUser.email];
-            const splitAmount = (Number(expForm.amount) / members.length).toFixed(2);
-
             const payload = {
-                groupId: group.id,
+                groupId: selectedGroup.id,
                 description: expForm.description,
-                amount: Number(expForm.amount),
-                paidBy: expForm.paidBy,
+                amount: totalAmount,
                 date: expForm.date,
-                splitAmount: Number(splitAmount),
-                members,
-                budgetId: expForm.budgetId || null
+                budgetId: expForm.budgetId || null,
+                splitType: expForm.splitType,
+                payers: expForm.payers,
+                splits: splits,
+                participants: members,
+                members // For easy firestore querying based on members array
             };
 
-            if (editingExp) {
-                await updateSharedExpense(editingExp.id, payload);
-            } else {
-                await addSharedExpense(payload);
-            }
+            if (editingExp) await updateSharedExpense(editingExp.id, payload);
+            else await addSharedExpense(payload);
 
             setExpModal(false);
             setEditingExp(null);
-            setExpForm({ description: '', amount: '', paidBy: currentUser.email, date: today(), budgetId: '' });
+            setExpForm({ ...INITIAL_EXP_FORM, payers: { [currentUser.email]: '' } });
         } finally { setSaving(false); }
     }
 
     async function handleDeleteSharedExpense(id) {
         if (confirm('Delete this shared expense?')) await deleteSharedExpense(id);
-    }
-
-    async function handleMarkPaidBack(exp, memberEmail) {
-        const paidBackBy = exp.paidBackBy || [];
-        if (!paidBackBy.includes(memberEmail)) {
-            await updateSharedExpense(exp.id, { paidBackBy: [...paidBackBy, memberEmail] });
-        }
     }
 
     function openExpModal(exp = null) {
@@ -95,42 +115,35 @@ export default function GroupsPage() {
             setExpForm({
                 description: exp.description,
                 amount: exp.amount,
-                paidBy: exp.paidBy,
                 date: exp.date,
-                budgetId: exp.budgetId || ''
+                budgetId: exp.budgetId || '',
+                splitType: exp.splitType || 'EQUAL',
+                payers: exp.payers || { [exp.paidBy || currentUser.email]: exp.amount },
+                splitData: { percentages: {}, shares: {}, exactAmounts: {}, ...exp.splitData }
             });
         } else {
             setEditingExp(null);
-            setExpForm({ description: '', amount: '', paidBy: currentUser.email, date: today(), budgetId: '' });
+            setExpForm({ ...INITIAL_EXP_FORM, payers: { [currentUser.email]: '' } });
         }
         setExpModal(true);
     }
 
-    // "Who owes who" — simple calculation inside the group
-    function calcOwings(expenses, members) {
-        const balances = {};
-        members.forEach(m => (balances[m] = 0));
+    // Settlements optimization
+    const { balances, settlements } = selectedGroup ? optimizeSettlements(sharedExpenses, members) : { balances: {}, settlements: [] };
 
-        expenses.forEach(exp => {
-            const payer = exp.paidBy;
-            const split = exp.splitAmount || 0;
-            const paidBackBy = exp.paidBackBy || [];
+    // Form Event Handlers inside Modal
+    const handlePayerChange = (email, overrideValue) => {
+        setExpForm(f => ({ ...f, payers: { ...f.payers, [email]: overrideValue } }));
+    };
 
-            exp.members?.forEach(m => {
-                if (m !== payer) {
-                    // Only count as owed if they haven't paid back this specific expense
-                    if (!paidBackBy.includes(m)) {
-                        balances[m] = (balances[m] || 0) - split;
-                        balances[payer] = (balances[payer] || 0) + split;
-                    }
-                }
-            });
-        });
-        return balances;
-    }
+    const handleSplitDataChange = (dataset, email, value) => {
+        setExpForm(f => ({
+            ...f,
+            splitData: { ...f.splitData, [dataset]: { ...f.splitData[dataset], [email]: value } }
+        }));
+    };
 
-    const members = selectedGroup?.members || [];
-    const owings = selectedGroup ? calcOwings(sharedExpenses, members) : {};
+    const currentSplitsPreview = calculateSplits(Number(expForm.amount || 0), expForm.splitType, members, expForm.splitData);
 
     return (
         <div className="page">
@@ -138,7 +151,7 @@ export default function GroupsPage() {
                 <div>
                     <div className="accent-line" />
                     <h1>Groups</h1>
-                    <p>Split expenses with friends and track who owes who</p>
+                    <p>Split expenses accurately with optimized settlements</p>
                 </div>
                 <button className="btn btn-primary" onClick={() => setGroupModal(true)}><Plus size={16} /> New Group</button>
             </div>
@@ -151,7 +164,7 @@ export default function GroupsPage() {
                 </div>
             ) : (
                 <div className="groups-layout">
-                    {/* Group List */}
+                    {/* Left: Group List */}
                     <div className="card" style={{ padding: 16 }}>
                         <h4 style={{ marginBottom: 12 }}>Your Groups</h4>
                         <div className="group-list">
@@ -175,7 +188,7 @@ export default function GroupsPage() {
                         </div>
                     </div>
 
-                    {/* Group Detail */}
+                    {/* Right: Group Detail */}
                     {selectedGroup && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <div className="card">
@@ -186,55 +199,50 @@ export default function GroupsPage() {
                                 {sharedExpenses.length === 0 ? (
                                     <div style={{ color: 'var(--text-muted)', fontSize: '0.88rem', padding: '20px 0' }}>No shared expenses yet.</div>
                                 ) : (
-                                    sharedExpenses.map(exp => (
-                                        <div key={exp.id} className="split-row">
-                                            <div>
-                                                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{exp.description}</div>
-                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Paid by {exp.paidBy} · {exp.date}</div>
-                                            </div>
-                                            <div style={{ textAlign: 'right' }}>
-                                                <div style={{ fontWeight: 700 }}>{formatINR(exp.amount)}</div>
-                                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{formatINR(exp.splitAmount)} / person</div>
-                                                <div className="flex gap-2" style={{ justifyContent: 'flex-end', marginTop: 4 }}>
-                                                    <button className="btn-icon" onClick={() => openExpModal(exp)} style={{ padding: 4 }}><Pencil size={12} /></button>
-                                                    <button className="btn-icon" onClick={() => handleDeleteSharedExpense(exp.id)} style={{ padding: 4 }}><Trash2 size={12} /></button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
+                                    sharedExpenses.map(exp => {
+                                        const myShare = exp.splits?.[currentUser.email] || 0;
+                                        const payersList = Object.keys(exp.payers || {}).map(p => p.split('@')[0]).join(', ');
 
-                            {/* Who owes who */}
-                            <div className="card">
-                                <h4 style={{ marginBottom: 12 }}>🔄 Settlement Summary</h4>
-                                {members.length === 0 ? (
-                                    <div style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>No members.</div>
-                                ) : (
-                                    members.map(m => {
-                                        const bal = owings[m] || 0;
                                         return (
-                                            <div key={m} className="split-row" style={{ alignItems: 'flex-start' }}>
-                                                <span style={{ fontSize: '0.88rem' }}>{m}</span>
-                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-                                                    <span className={`owes-chip ${bal >= 0 ? 'owes-pos' : 'owes-neg'}`}>
-                                                        {bal >= 0 ? `gets back ${formatINR(bal)}` : `owes ${formatINR(Math.abs(bal))}`}
-                                                    </span>
-
-                                                    {bal > 0 && m === currentUser.email && (
-                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', alignItems: 'flex-end' }}>
-                                                            {/* Show quick actions to mark individual pending expenses as paid */}
-                                                            {sharedExpenses.filter(e => e.paidBy === currentUser.email && e.members.includes(m) && !(e.paidBackBy || []).includes(m)).map(e => (
-                                                                <button key={e.id} className="btn btn-ghost btn-sm" onClick={() => handleMarkPaidBack(e, m)} style={{ fontSize: '0.7rem', padding: '2px 6px', height: 'auto' }}>
-                                                                    Mark '{e.description}' Paid
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    )}
+                                            <div key={exp.id} className="split-row">
+                                                <div>
+                                                    <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{exp.description}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Paid by {payersList} · {exp.date}</div>
+                                                </div>
+                                                <div style={{ textAlign: 'right' }}>
+                                                    <div style={{ fontWeight: 700 }}>{formatINR(exp.amount)}</div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>You owe {formatINR(myShare)}</div>
+                                                    <div className="flex gap-2" style={{ justifyContent: 'flex-end', marginTop: 4 }}>
+                                                        <button className="btn-icon" onClick={() => openExpModal(exp)} style={{ padding: 4 }}><Pencil size={12} /></button>
+                                                        <button className="btn-icon" onClick={() => handleDeleteSharedExpense(exp.id)} style={{ padding: 4 }}><Trash2 size={12} /></button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         );
                                     })
+                                )}
+                            </div>
+
+                            {/* Settlements view */}
+                            <div className="card">
+                                <h4 style={{ marginBottom: 16 }}>🔄 Settlement Summary</h4>
+                                {settlements.length === 0 ? (
+                                    <div style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>Everyone is fully settled up! 🎉</div>
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        {settlements.map((s, i) => (
+                                            <div key={i} className="flex justify-between items-center" style={{ background: 'var(--bg-secondary)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                                                <div className="flex items-center gap-2">
+                                                    <span style={{ fontWeight: 600, color: s.from === currentUser.email ? '#ef4444' : 'inherit' }}>{s.from === currentUser.email ? 'You' : s.from.split('@')[0]}</span>
+                                                    <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
+                                                    <span style={{ fontWeight: 600, color: s.to === currentUser.email ? '#22c55e' : 'inherit' }}>{s.to === currentUser.email ? 'You' : s.to.split('@')[0]}</span>
+                                                </div>
+                                                <div style={{ fontWeight: 700, color: s.to === currentUser.email ? '#22c55e' : (s.from === currentUser.email ? '#ef4444' : 'var(--text)') }}>
+                                                    {formatINR(s.amount)}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -260,31 +268,24 @@ export default function GroupsPage() {
                 </form>
             </Modal>
 
-            {/* Add/Edit Shared Expense Modal */}
-            <Modal isOpen={expModal} onClose={() => setExpModal(false)} title={editingExp ? "Edit Shared Expense" : "Add Shared Expense"}>
-                <form onSubmit={handleAddSharedExpense} className="modal-form">
-                    <div className="input-group">
-                        <label>Description</label>
-                        <input className="input" placeholder="e.g. Hotel booking" value={expForm.description} onChange={e => setExpForm(f => ({ ...f, description: e.target.value }))} required />
-                    </div>
+            {/* Advanced Shared Expense Modal */}
+            <Modal isOpen={expModal} onClose={() => setExpModal(false)} title={editingExp ? "Edit Shared Expense" : "Add Shared Expense"} style={{ maxWidth: '500px' }}>
+                <form onSubmit={handleAddSharedExpense} className="modal-form" style={{ gap: '20px' }}>
                     <div className="form-row">
                         <div className="input-group">
-                            <label>Total Amount (₹)</label>
-                            <input className="input" type="number" placeholder="2000" value={expForm.amount} onChange={e => setExpForm(f => ({ ...f, amount: e.target.value }))} required />
+                            <label>Description</label>
+                            <input className="input" placeholder="e.g. Hotel booking" value={expForm.description} onChange={e => setExpForm(f => ({ ...f, description: e.target.value }))} required />
                         </div>
+                        <div className="input-group">
+                            <label>Total Amount (₹)</label>
+                            <input className="input" type="number" step="any" placeholder="2000" value={expForm.amount} onChange={e => setExpForm(f => ({ ...f, amount: e.target.value }))} required />
+                        </div>
+                    </div>
+
+                    <div className="form-row">
                         <div className="input-group">
                             <label>Date</label>
                             <input className="input" type="date" value={expForm.date} onChange={e => setExpForm(f => ({ ...f, date: e.target.value }))} required />
-                        </div>
-                    </div>
-                    <div className="form-row">
-                        <div className="input-group">
-                            <label>Paid By</label>
-                            <select className="input" value={expForm.paidBy} onChange={e => setExpForm(f => ({ ...f, paidBy: e.target.value }))} required>
-                                {selectedGroup?.members?.map(m => (
-                                    <option key={m} value={m}>{m === currentUser.email ? `${m} (You)` : m}</option>
-                                )) || <option value={currentUser.email}>{currentUser.email} (You)</option>}
-                            </select>
                         </div>
                         <div className="input-group">
                             <label>Budget (Optional)</label>
@@ -296,11 +297,75 @@ export default function GroupsPage() {
                             </select>
                         </div>
                     </div>
-                    {selectedGroup && (
-                        <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                            Split among {(selectedGroup?.members || []).length} members → {expForm.amount ? formatINR(Number(expForm.amount) / (selectedGroup?.members?.length || 1)) : '—'} / person
+
+                    {/* Payers Section */}
+                    <div className="input-group">
+                        <label style={{ borderBottom: '1px solid var(--border)', paddingBottom: 6, marginBottom: 6 }}>Who Paid? (Enter amounts if multiple)</label>
+                        {members.map(m => (
+                            <div key={`paid_${m}`} className="flex justify-between items-center gap-3 mb-2">
+                                <span style={{ fontSize: '0.85rem' }}>{m === currentUser.email ? 'You' : m.split('@')[0]}</span>
+                                <input type="number" step="any" className="input" style={{ width: '120px', padding: '6px 10px', fontSize: '0.85rem' }}
+                                    placeholder="0" value={expForm.payers[m] || ''}
+                                    onChange={e => handlePayerChange(m, e.target.value)}
+                                />
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Split Type Toggle */}
+                    <div className="input-group">
+                        <label style={{ borderBottom: '1px solid var(--border)', paddingBottom: 6, marginBottom: 6 }}>Split Method</label>
+                        <div className="flex gap-2" style={{ flexWrap: 'wrap' }}>
+                            {['EQUAL', 'CUSTOM', 'PERCENTAGE', 'SHARES'].map(t => (
+                                <button key={t} type="button"
+                                    className={`btn btn-sm ${expForm.splitType === t ? 'btn-primary' : 'btn-ghost'}`}
+                                    onClick={() => setExpForm(f => ({ ...f, splitType: t }))}
+                                >
+                                    {t}
+                                </button>
+                            ))}
                         </div>
-                    )}
+                    </div>
+
+                    {/* Dynamic Split Inputs */}
+                    <div className="input-group" style={{ background: 'var(--bg-secondary)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                        <div className="flex justify-between" style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase' }}>
+                            <span>Member</span>
+                            <span>{expForm.splitType === 'EQUAL' ? 'Amount Owed' : (expForm.splitType === 'CUSTOM' ? 'Exact Amount' : (expForm.splitType === 'PERCENTAGE' ? 'Percentage %' : 'Shares'))}</span>
+                        </div>
+
+                        {members.map(m => (
+                            <div key={`split_${m}`} className="flex justify-between items-center gap-3 mb-2">
+                                <span style={{ fontSize: '0.85rem', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m === currentUser.email ? 'You' : m.split('@')[0]}</span>
+
+                                {expForm.splitType === 'EQUAL' && (
+                                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{formatINR(currentSplitsPreview[m] || 0)}</span>
+                                )}
+
+                                {expForm.splitType === 'CUSTOM' && (
+                                    <input type="number" step="any" className="input" style={{ width: '100px', padding: '6px 10px', fontSize: '0.85rem' }}
+                                        placeholder="0" value={expForm.splitData.exactAmounts[m] || ''}
+                                        onChange={e => handleSplitDataChange('exactAmounts', m, e.target.value)}
+                                    />
+                                )}
+
+                                {expForm.splitType === 'PERCENTAGE' && (
+                                    <input type="number" step="any" className="input" style={{ width: '80px', padding: '6px 10px', fontSize: '0.85rem' }}
+                                        placeholder="0%" value={expForm.splitData.percentages[m] || ''}
+                                        onChange={e => handleSplitDataChange('percentages', m, e.target.value)}
+                                    />
+                                )}
+
+                                {expForm.splitType === 'SHARES' && (
+                                    <input type="number" step="any" className="input" style={{ width: '80px', padding: '6px 10px', fontSize: '0.85rem' }}
+                                        placeholder="1" value={expForm.splitData.shares[m] || ''}
+                                        onChange={e => handleSplitDataChange('shares', m, e.target.value)}
+                                    />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+
                     <div className="modal-actions">
                         <button type="button" className="btn btn-ghost" onClick={() => setExpModal(false)}>Cancel</button>
                         <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving...' : (editingExp ? 'Save Changes' : 'Add Expense')}</button>

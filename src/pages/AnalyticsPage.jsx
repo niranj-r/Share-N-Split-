@@ -29,7 +29,7 @@ export default function AnalyticsPage() {
     const virtualSharedExpenses = sharedExpenses.map(se => ({
         id: `shared_${se.id}`,
         category: se.category || 'Others',
-        amount: se.splitAmount || 0,
+        amount: se.splits?.[currentUser.email] || 0,
         date: se.date,
         budgetId: se.budgetId || ''
     }));
