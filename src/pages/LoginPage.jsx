@@ -44,8 +44,8 @@ export default function LoginPage() {
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.6, ease: 'backOut' }}
                 >
-                    <KryseLogo />
-                    <span className="auth-brand">KRYSE</span>
+                    <ShareNSplitLogo />
+                    <span className="auth-brand">ShareNSplit</span>
                 </motion.div>
 
                 <div className="auth-line" />
@@ -77,11 +77,11 @@ export default function LoginPage() {
     );
 }
 
-function KryseLogo({ size = 48 }) {
+function ShareNSplitLogo({ size = 48 }) {
     return (
         <motion.img
-            src="/kryselogo.png"
-            alt="KRYSE Logo"
+            src="/DarkLogoSN.svg"
+            alt="ShareNSplit Logo"
             width={size}
             height={(size / 151) * 200}
             animate={{ filter: ['drop-shadow(0 0 8px #FF3300)', 'drop-shadow(0 0 24px #FF3300)', 'drop-shadow(0 0 8px #FF3300)'] }}

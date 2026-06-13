@@ -33,13 +33,13 @@ export default function Sidebar() {
             >
                 {/* Logo row */}
                 <div className="sidebar-logo">
-                    <KryseLogo size={32} />
+                    <ShareNSplitLogo size={32} />
                     {!collapsed && (
                         <motion.span
                             className="sidebar-brand"
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
                         >
-                            KRYSE
+                            ShareNSplit
                         </motion.span>
                     )}
                     <button className="btn-icon sidebar-collapse-btn" onClick={() => setCollapsed(c => !c)}>
@@ -91,11 +91,11 @@ export default function Sidebar() {
     );
 }
 
-function KryseLogo({ size = 32 }) {
+function ShareNSplitLogo({ size = 32 }) {
     return (
         <img
-            src="/kryselogo.png"
-            alt="KRYSE Logo"
+            src="/DarkLogoSN.svg"
+            alt="ShareNSplit Logo"
             width={size}
             height={(size / 151) * 200} // Maintain roughly the aspect ratio of 151x200 
             style={{ objectFit: 'contain' }}

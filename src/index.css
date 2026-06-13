@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600&display=swap');
 
-/* ─── KRYSE Design Tokens ─────────────────────────────── */
+/* ─── ShareNSplit Design Tokens ─────────────────────────────── */
 :root {
   --bg: #171717;
   --bg-secondary: #1f1f1f;
@@ -155,7 +155,7 @@ p {
   width: 100%;
 }
 
-/* ─── KRYSE Buttons ─────────────────────────────────── */
+/* ─── ShareNSplit Buttons ─────────────────────────────────── */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -224,7 +224,7 @@ p {
   border-color: var(--accent);
 }
 
-/* ─── KRYSE Cards ───────────────────────────────────── */
+/* ─── ShareNSplit Cards ───────────────────────────────────── */
 .card {
   background: var(--card);
   border-radius: var(--radius-lg);
@@ -243,7 +243,7 @@ p {
   box-shadow: var(--shadow-glow-lg);
 }
 
-/* ─── KRYSE Inputs ──────────────────────────────────── */
+/* ─── ShareNSplit Inputs ──────────────────────────────────── */
 .input-group {
   display: flex;
   flex-direction: column;

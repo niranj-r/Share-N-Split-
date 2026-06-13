@@ -44,13 +44,13 @@ export default function RegisterPage() {
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.6, ease: 'backOut' }}
                 >
-                    <KryseLogo />
-                    <span className="auth-brand">KRYSE</span>
+                    <ShareNSplitLogo />
+                    <span className="auth-brand">ShareNSplit</span>
                 </motion.div>
 
                 <div className="auth-line" />
                 <h2 className="auth-title">Create account</h2>
-                <p className="auth-sub">Start your financial journey with KRYSE</p>
+                <p className="auth-sub">Start your financial journey with ShareNSplit</p>
 
                 {error && <div className="auth-error">{error}</div>}
 
@@ -81,11 +81,11 @@ export default function RegisterPage() {
     );
 }
 
-function KryseLogo({ size = 48 }) {
+function ShareNSplitLogo({ size = 48 }) {
     return (
         <motion.img
-            src="/kryselogo.svg"
-            alt="KRYSE Logo"
+            src="/sharensplitlogo.svg"
+            alt="ShareNSplit Logo"
             width={size}
             height={(size / 151) * 200}
             animate={{ filter: ['drop-shadow(0 0 8px #FF3300)', 'drop-shadow(0 0 24px #FF3300)', 'drop-shadow(0 0 8px #FF3300)'] }}

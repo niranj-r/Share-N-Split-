@@ -3,11 +3,11 @@ import { Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './TopNav.css';
 
-function KryseLogo({ size = 28 }) {
+function ShareNSplitLogo({ size = 28 }) {
     return (
         <img
-            src="/kryselogo.png"
-            alt="KRYSE Logo"
+            src="/DarkLogoSN.svg"
+            alt="ShareNSplit Logo"
             width={size}
             height={(size / 151) * 200}
             style={{ objectFit: 'contain' }}
@@ -23,8 +23,8 @@ export default function TopNav() {
     return (
         <header className="top-nav glass">
             <div className="top-nav-brand">
-                <KryseLogo size={24} />
-                <span className="top-nav-title">KRYSE</span>
+                <ShareNSplitLogo size={24} />
+                <span className="top-nav-title">ShareNSplit</span>
             </div>
 
             <div className="top-nav-actions">

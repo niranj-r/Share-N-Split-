@@ -86,11 +86,11 @@ function AppRoutes({ theme, toggleTheme }) {
 }
 
 export default function App() {
-  const [theme, setTheme] = useState(() => localStorage.getItem('kryse-theme') || 'dark');
+  const [theme, setTheme] = useState(() => localStorage.getItem('sharensplit-theme') || 'dark');
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('kryse-theme', theme);
+    localStorage.setItem('sharensplit-theme', theme);
   }, [theme]);
 
   function toggleTheme() {

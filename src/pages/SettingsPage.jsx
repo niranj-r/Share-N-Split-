@@ -135,7 +135,7 @@ export default function SettingsPage({ theme, toggleTheme }) {
                     </p>
 
                     <button className="btn btn-danger" onClick={logout}>
-                        <LogOut size={16} /> Sign Out of KRYSE
+                        <LogOut size={16} /> Sign Out of ShareNSplit
                     </button>
                 </motion.div>
 

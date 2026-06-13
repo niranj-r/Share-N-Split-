@@ -40,8 +40,8 @@ export default function LoadingSpinner() {
 
                 {/* The Logo Layer */}
                 <motion.img
-                    src="/kryselogo.png"
-                    alt="KRYSE Logo"
+                    src="/DarkLogoSN.svg"
+                    alt="ShareNSplit Logo"
                     width={100}
                     style={{
                         position: 'relative',
@@ -70,7 +70,7 @@ export default function LoadingSpinner() {
                     fontWeight: 600,
                     letterSpacing: '0.2em'
                 }}>
-                    KRYSE
+                    ShareNSplit
                 </div>
                 <motion.div
                     style={{
