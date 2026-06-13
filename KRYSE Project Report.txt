@@ -1,0 +1,289 @@
+================================================================================
+               SHARENSPLIT PROJECT ARCHITECTURE & FEATURE REPORT
+================================================================================
+Version: 1.0.0
+Design Language: Minimal / Futuristic / Geometric (Linear & Vercel style)
+Tech Stack: React + Vite, Firebase (Auth/Firestore), Framer Motion, Recharts
+Primary Font: Cabinet Grotesk (Headings), Bricolage Grotesque (Body)
+
+--------------------------------------------------------------------------------
+1. BRAND IDENTITY & COLOR PALETTE
+--------------------------------------------------------------------------------
+ShareNSplit follows a high-contrast, premium aesthetic designed to look like a
+high-end fintech or modern developer tool (Linear/Vercel style).
+
+Primary Colors:
+- Background (Dark):  #171717 (Deep Obsidian) - Primary layout background
+- Background (Light): #FFFFFF (Pure White) - Light mode background
+- Primary Accent:     #FF3300 (Neon Orange / ShareNSplit Flame) - CTAs and glows
+- Text (Primary):     #FFFFFF (Dark Mode) / #171717 (Light Mode)
+- Text (Secondary):   #888888 (Muted Gray) - Muted subtitles and secondary info
+- Card Surfaces:      #262626 (Glassmorphic Dark) / #F5F5F5 (Light Mode Surfaces)
+- Borders:            #333333 (Dark Mode) / #EEEEEE (Light Mode)
+
+Utility Colors:
+- Success:            #22C55E (Emerald Green) - Positive balances, money left
+- Danger:             #EF4444 (Rose Red) - Budgets exceeded, money owed, delete
+- Warning:            #F59E0B (Amber Gold) - Approaching budget limit (>80%)
+- Information:        #818CF8 (Indigo) - Secondary stats, active trip indicators
+
+--------------------------------------------------------------------------------
+2. FIREBASE DATABASE ARCHITECTURE & SCHEMAS
+--------------------------------------------------------------------------------
+The backend database is built on Google Cloud Firebase Firestore, a NoSQL document 
+database. The data model is structured around users, budgets, trips, expenses, 
+groups, and shared expenses, with document IDs linking entities together.
+
+A. Users Collection ('users')
+   - Path: /users/{uid}
+   - Description: Stores profile and preferences for registered users.
+   - Fields:
+     * name: String (Full name of user)
+     * email: String (Email address used for logging in and group splitting)
+     * preferences: Map
+       - theme: String ("dark" | "light")
+     * createdAt: Timestamp (Firestore Server Timestamp)
+
+B. Budgets Collection ('budgets')
+   - Path: /budgets/{budgetId}
+   - Description: Pre-declared financial thresholds for specific timeframes.
+   - Fields:
+     * budgetId: String (Auto-generated Document ID)
+     * userId: String (User UID of owner - links to /users/{uid})
+     * name: String (Budget name, e.g. "Bali Trip Budget", "Monthly Groceries")
+     * totalAmount: String/Number (Total allocated funds)
+     * amountSpent: Number (Default 0, modified dynamically or computed on read)
+     * startDate: String (YYYY-MM-DD format)
+     * endDate: String (YYYY-MM-DD format)
+     * createdAt: Timestamp (Firestore Server Timestamp)
+
+C. Trips Collection ('trips')
+   - Path: /trips/{tripId}
+   - Description: Travel itineraries mapped to budgets.
+   - Fields:
+     * tripId: String (Auto-generated Document ID)
+     * name: String (Name of the trip, e.g. "Goa Expedition")
+     * destination: String (Geographic location)
+     * startDate: String (YYYY-MM-DD format)
+     * endDate: String (YYYY-MM-DD format)
+     * budgetId: String (FK, refers to /budgets/{budgetId}, optional)
+     * createdBy: String (User UID of trip creator)
+     * createdAt: Timestamp (Firestore Server Timestamp)
+
+D. Expenses Collection ('expenses')
+   - Path: /expenses/{expenseId}
+   - Description: Personal, individual transactions.
+   - Fields:
+     * expenseId: String (Auto-generated Document ID)
+     * userId: String (User UID of owner)
+     * title: String (Description of transaction, e.g. "Airport Taxi")
+     * amount: String/Number (Money spent)
+     * category: String (Food, Travel, Shopping, Bills, Entertainment, Others)
+     * date: String (YYYY-MM-DD format)
+     * budgetId: String (FK, refers to /budgets/{budgetId}, optional)
+     * tripId: String (FK, refers to /trips/{tripId}, optional)
+     * notes: String (User notes, optional)
+     * createdAt: Timestamp (Firestore Server Timestamp)
+
+E. Groups Collection ('groups')
+   - Path: /groups/{groupId}
+   - Description: Collaborators sharing expenses (e.g. travel roommates).
+   - Fields:
+     * groupId: String (Auto-generated Document ID)
+     * name: String (Group name, e.g. "Flat 404", "EuroTrip 2026")
+     * description: String (Group description, optional)
+     * members: Array of Strings (List of participant emails - used for querying)
+     * createdBy: String (User UID of creator)
+     * createdAt: Timestamp (Firestore Server Timestamp)
+
+F. Shared Expenses Collection ('sharedExpenses')
+   - Path: /sharedExpenses/{sharedExpenseId}
+   - Description: Split expenses belonging to a group.
+   - Fields:
+     * sharedExpenseId: String (Auto-generated Document ID)
+     * groupId: String (FK, refers to /groups/{groupId})
+     * description: String (Description of shared transaction)
+     * amount: Number (Total expense amount)
+     * date: String (YYYY-MM-DD format)
+     * budgetId: String (FK, refers to /budgets/{budgetId}, optional)
+     * splitType: String ("EQUAL" | "CUSTOM" | "PERCENTAGE" | "SHARES")
+     * payers: Map (key: User Email -> value: Amount Paid, allows multi-payer)
+     * splits: Map (key: User Email -> value: Calculated Amount Owed)
+     * members: Array of Strings (List of participant emails - duplicate of group members)
+     * paidBackBy: Array of Strings (Emails of users who settled their debt)
+     * createdAt: Timestamp (Firestore Server Timestamp)
+
+--------------------------------------------------------------------------------
+3. SCREEN VISUAL LAYOUTS & UI COMPONENTS
+--------------------------------------------------------------------------------
+The application is wrapped in a highly optimized responsive Shell layout. Below is 
+the layout structure and a screen-by-screen visual breakdown:
+
+A. Application Shell (Layout Wrapper)
+   - Left Sidebar (Desktop): Deep obsidian background (#171717), vertical border 
+     (#333333), custom geometric ShareNSplit logo animating with a soft orange glow.
+     Navigation items with hover scaling and border highlights. Profile card 
+     and Sign Out CTA at the bottom.
+   - Top Nav & Bottom Nav (Mobile): Compact top bar showing the ShareNSplit logo and 
+     the active page name. Fixed bottom bar with icons for quick routing.
+
+B. Login & Registration Pages
+   - Dark theme layout featuring two massive, slow-moving blurred backdrop orbs 
+     (orb1 in neon orange, orb2 in deep indigo) creating a glassmorphism feel.
+     Center card holds a glowing, spinning logo, standard input fields with dark 
+     borders (#444) that expand and glow orange (#FF3300) on focus, and high-contrast 
+     buttons.
+
+C. Smart Dashboard (Bento Grid Layout)
+   An interactive dashboard utilizing CSS Grid to form a Bento design layout.
+   - Block 1: "Total Budget" (1x1) - Obsidian glass finish, displays the aggregated 
+     budget from all active budget accounts.
+   - Block 2: "Total Spent" (1x1) - Displays total spending in bold red numbers.
+   - Block 3: "Money Left" (1x1) - Displays net surplus (Total Budget - Total Spent) 
+     highlighted in emerald green (or warning red if net negative).
+   - Block 4: "Active Trips" (1x1) - Displaying the total count of planned trips.
+   - Block 5: "Budget Overview" (2x1) - Flex row of up to 5 SVG progress rings. 
+     Rings show the percentage of budget used with center text showing name and 
+     amount remaining.
+   - Block 6: "Recent Expenses" (2x2, Tall) - List of the latest 6 transactions. 
+     Each item shows a category badge (colored dynamically), title, date, and 
+     negative value amount. Injects group shared expenses as virtual items.
+   - Block 7: "Categorization" (1x1) - Recharts Pie Chart representing expense split. 
+     Uses PIE_COLORS starting from neon orange, with dynamic hover Tooltips.
+   - Block 8: "Last 6 Months Chart" (1x1) - Recharts Bar Chart indicating monthly 
+     spending. The current month is highlighted in bright orange, other months are muted.
+
+D. Budgets Page
+   - Header with a "New Budget" CTA button opening a slider Modal.
+   - Responsive grid of Budget Cards. Each card features:
+     * Top section: Budget Title, date range, Edit and Delete icons.
+     * Center: Circular BudgetRing SVG visualizing utilization.
+     * Bottom: Three statistics columns (Total, Spent, Left) and a micro progress 
+       bar that turns amber (>80% limit) or rose red (>90% limit).
+     * Owed back section: Shows potential receivables calculated from split expenses.
+
+E. Trips Page
+   - Grid of Trip Cards. Each card contains the trip name, destination pins, calendar 
+     dates, and a linked budget bar.
+     If a budget is linked, it displays the trip expenses against the budget capacity, 
+     accompanied by a "Percentage Left" badge. Otherwise, shows "No budget linked".
+
+F. Expenses Page
+   - Filter Controls Card: Search input bar with search icon, Category filter dropdown, 
+     Trip filter dropdown, and a live sum counter indicating filtered total in red.
+   - Expense Table Ledger: Sequentially animated table rows. Fields: Title + notes subtext, 
+     category badge, date, linked trip, linked budget, amount, and actions.
+     Shared expenses are marked with a "From Group" badge and do not permit editing.
+
+G. Analytics Page
+   - Spending by Category (Large Pie Chart with legend details).
+   - Budget Utilization List (Progress bars indicating percentage used of all budgets).
+     Bars pulse red when exceeding 90%.
+   - Monthly Spending comparison (12-month Bar Chart).
+   - Spending Trend (Smooth Line Chart with data-point hover highlights).
+
+H. Groups Page
+   - Two-column split layout:
+     * Left Column: List of groups with creator tags and member counts.
+     * Right Column: Shared expenses log and a "Settlement Summary" box.
+   - Settlement Summary Panel: Calculates net balances and displays minimized transactions 
+     in a card (e.g. "Alice owes Bob ₹500"). Uses green badges for receivables and 
+     red badges for payables.
+   - Shared Expense Modal: Advanced form allowing users to select multiple payers, 
+     input different payment weights, and split by EQUAL, CUSTOM, PERCENTAGE, or SHARES.
+
+I. Settings Page
+   - Form to update the user's display name.
+   - Light/Dark appearance toggle button.
+   - Danger Zone section enclosing a "Sign Out of ShareNSplit" button.
+
+--------------------------------------------------------------------------------
+4. SYSTEM LOGIC & DATA INTERCONNECTIONS
+--------------------------------------------------------------------------------
+The backend and frontend are highly interconnected through modular hooks and active 
+listeners that dynamically sync and propagate data.
+
+A. Authentication & State Management
+   - Handled via context/AuthContext.js. Renders a React context provider wrapping 
+     the application tree.
+   - Holds currentUser state. On state change, it subscribes to collections.
+
+B. Real-time Subscriptions (onSnapshot)
+   - When a screen loads, services.js establishes real-time Firestore listeners.
+   - Any CRUD operations perform a write to Firestore. The listener automatically 
+     receives the document snapshot, updating the React state and forcing a re-render.
+   - All budget rings, charts, and values update automatically across all devices.
+
+C. The "Virtual Expense" Integration
+   - Shared expenses are stored globally. The system queries sharedExpenses with:
+     where('members', 'array-contains', currentUser.email)
+   - On fetch, the application calculates:
+     virtualAmount = sharedExpense.splits[currentUser.email]
+   - It maps this into a virtual expense object prefixed with "[Shared]" and merges 
+     it with personal expenses. This ensures that a user's dashboard charts, recent 
+     expenses list, and budget utilization correctly reflect their shared liabilities.
+
+D. Multi-Payer Split Calculations
+   - When adding a shared expense, the total amount must match the sum of payer contributions:
+     totalAmount == SUM(expForm.payers[member])
+   - The user selects a split method, which determines how much each member owes:
+     * EQUAL: splits = totalAmount / count (handling remainders to ensure exact sum).
+     * PERCENTAGE: splits = (totalAmount * percentage[member]) / 100
+     * SHARES: splits = (totalAmount * share[member]) / totalShares
+     * CUSTOM: splits = exactAmount[member]
+   - The system records both payers and splits in Firestore.
+
+E. ShareNSplit Greedy Settlement Optimization Algorithm
+   To prevent complex round-robin transfers (e.g. A owes B, B owes C), the system 
+   contains an optimization algorithm (optimizeSettlements in splitUtils.js):
+   1. Compute Net Balances:
+      For each group member: Balance = Total Paid - Total Owed.
+      * Total Paid = Sum of all values where member is key in expense 'payers'.
+      * Total Owed = Sum of all values where member is key in expense 'splits'.
+   2. Separate Members:
+      - Creditors: Balance > 0.01
+      - Debtors: Balance < -0.01 (expressed as absolute value)
+   3. Sort Collections:
+      Sort creditors descending and debtors descending.
+   4. Greedy Matching:
+      - Match the largest debtor with the largest creditor.
+      - Calculate transaction amount: Transferred = min(creditor.amount, debtor.amount).
+      - Record transaction: Debtor pays Creditor (Transferred).
+      - Adjust balances. If a balance drops to 0, advance to the next member.
+      - Repeat until all debts are settled, resulting in the absolute minimum transactions.
+
+F. Cascade Deletion Flow
+   - Deleting a budget or trip retains individual expenses but removes references.
+   - Deleting a group queries and deletes all sharedExpenses belonging to that group, 
+     then removes the group itself. This cascade logic avoids database orphans.
+
+--------------------------------------------------------------------------------
+5. ANIMATION SYSTEM (Implemented & Planned)
+--------------------------------------------------------------------------------
+Current Implementation (Framer Motion):
+- Page Transitions: Smooth opacity + Y-axis slide (0.3s) when swapping routes.
+- Bento Hover: Cards scale (1.02x) and develop a subtle shadow glow.
+- Modal Entry: Backdrop blur with a spring-based scale-up effect.
+- Status Badges: Hover-triggered color shifts.
+
+Proposed "ShareNSplit-Vibe" Animations:
+- Logo Assembly: 3 triangles assembling on login screen load (GSAP).
+- Number Ticker: Budget values "counting up" when the dashboard loads.
+- Success Draw: SVG path animation for checkmarks after adding an expense.
+- Pulse Warning: Budget rings should "pulse" orange when spending > 90%.
+
+--------------------------------------------------------------------------------
+6. FILE STRUCTURE OVERVIEW
+--------------------------------------------------------------------------------
+/src
+  /components  -> Modular UI bits (Sidebar, TopNav, MobileNav, Modal, BudgetRing)
+  /context     -> Auth state and global providers (AuthContext.js)
+  /pages       -> Main screen components (Dashboard, Budgets, Trips, Expenses, Groups)
+  /services.js -> Firebase queries, collection listeners, helper formatters
+  /utils       -> Splitting math formulas and settlement optimization
+  /index.css   -> Global Design System (Color tokens, bento grids, custom buttons)
+  /firebase.js -> Firebase SDK initialization (API keys, App initialization)
+
+================================================================================
+                               END OF REPORT
+================================================================================
