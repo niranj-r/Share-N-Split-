@@ -39,7 +39,7 @@ export default function Sidebar() {
                             className="sidebar-brand"
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}
                         >
-                            <img src="/SNStypographyLogo.svg" alt="ShareNSplit" style={{ height: '35px', marginLeft: '2px' }} />
+                            ShareNSplit
                         </motion.span>
                     )}
                     <button className="btn-icon sidebar-collapse-btn" onClick={() => setCollapsed(c => !c)}>

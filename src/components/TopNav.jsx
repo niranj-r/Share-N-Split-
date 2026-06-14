@@ -24,9 +24,7 @@ export default function TopNav() {
         <header className="top-nav glass">
             <div className="top-nav-brand">
                 <ShareNSplitLogo size={24} />
-                <span className="top-nav-title">
-                    <img src="/SNStypographyLogo.svg" alt="ShareNSplit" style={{ height: '28px', marginLeft: '2px', verticalAlign: 'middle' }} />
-                </span>
+                <span className="top-nav-title">ShareNSplit</span>
             </div>
 
             <div className="top-nav-actions">
