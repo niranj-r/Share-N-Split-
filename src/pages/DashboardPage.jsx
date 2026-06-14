@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { TrendingDown, TrendingUp, Wallet, MapPin, Plus } from 'lucide-react';
+import { TrendingDown, TrendingUp, Wallet, MapPin, Plus, Hand, CheckCircle2 } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { useAuth } from '../context/AuthContext';
 import { subscribeBudgets, subscribeExpenses, subscribeTrips, subscribeUserSharedExpenses, formatINR, catClass, CATEGORIES } from '../services';
@@ -114,7 +114,7 @@ export default function DashboardPage() {
                 <div>
                     <div className="accent-line" />
                     <h1>Dashboard</h1>
-                    <p>Good {getGreeting()}, {currentUser.displayName?.split(' ')[0]} 👋</p>
+                    <p>Good {getGreeting()}, {currentUser.displayName?.split(' ')[0]} <Hand size={16} style={{ display: 'inline', marginLeft: 4 }} /></p>
                 </div>
                 <div className="flex gap-2">
                     <button className="btn btn-ghost" onClick={() => navigate('/budgets')}>
@@ -217,7 +217,7 @@ export default function DashboardPage() {
                         <button className="btn btn-ghost btn-sm" onClick={() => navigate('/groups')}>View</button>
                     </div>
                     {userSettlements.length === 0 ? (
-                        <div className="chart-empty" style={{ padding: '0', margin: 0, textAlign: 'left' }}>All settled up! 🎉</div>
+                        <div className="chart-empty" style={{ padding: '0', margin: 0, textAlign: 'left' }}>All settled up! <CheckCircle2 size={16} style={{ display: 'inline', marginLeft: 4, verticalAlign: 'text-bottom', color: '#22c55e' }} /></div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {userSettlements.slice(0, 3).map((s, i) => (

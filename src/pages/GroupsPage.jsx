@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, Users, ChevronRight, Pencil } from 'lucide-react';
+import { Plus, Trash2, Users, ChevronRight, Pencil, Receipt, Banknote, ArrowRight, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { subscribeGroups, subscribeSharedExpenses, subscribeBudgets, addGroup, deleteGroup, addSharedExpense, updateSharedExpense, deleteSharedExpense, formatINR } from '../services';
 import { calculateSplits, optimizeSettlements } from '../utils/splitUtils';
@@ -186,7 +186,7 @@ export default function GroupsPage() {
 
             {groups.length === 0 ? (
                 <div className="empty-state">
-                    <div className="empty-icon">👥</div>
+                    <div className="empty-icon"><Users size={48} style={{ opacity: 0.5 }} /></div>
                     <p>No groups yet. Create one to start splitting expenses!</p>
                     <button className="btn btn-primary" onClick={() => setGroupModal(true)}>Create Group</button>
                 </div>
@@ -221,7 +221,7 @@ export default function GroupsPage() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             <div className="card">
                                 <div className="section-header" style={{ marginBottom: 12 }}>
-                                    <h4>💸 Shared Expenses — {selectedGroup.name}</h4>
+                                    <h4><Receipt size={18} style={{ display: 'inline', marginRight: 8, verticalAlign: 'text-bottom' }} /> Shared Expenses — {selectedGroup.name}</h4>
                                     <button className="btn btn-primary btn-sm" onClick={() => openExpModal()}><Plus size={14} /> Add</button>
                                 </div>
                                 {sharedExpenses.length === 0 ? (
@@ -235,7 +235,7 @@ export default function GroupsPage() {
                                             <div key={exp.id} className="split-row" style={exp.isSettlement ? { borderLeft: '4px solid #22c55e', background: 'rgba(34, 197, 94, 0.05)' } : {}}>
                                                 <div>
                                                     <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>
-                                                        {exp.isSettlement ? `💸 Payment: ${Object.keys(exp.payers || {})[0]?.split('@')[0]} ➔ ${Object.keys(exp.splits || {})[0]?.split('@')[0]}` : exp.description}
+                                                        {exp.isSettlement ? <div className="flex items-center gap-1"><Banknote size={14} style={{ color: 'var(--accent)' }} /> Payment: {Object.keys(exp.payers || {})[0]?.split('@')[0]} <ArrowRight size={12} /> {Object.keys(exp.splits || {})[0]?.split('@')[0]}</div> : exp.description}
                                                     </div>
                                                     <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                                                         {exp.isSettlement ? '' : `Paid by ${payersList} · `}{exp.date}
@@ -257,9 +257,9 @@ export default function GroupsPage() {
 
                             {/* Settlements view */}
                             <div className="card">
-                                <h4 style={{ marginBottom: 16 }}>🔄 Settlement Summary</h4>
+                                <h4 style={{ marginBottom: 16 }}><RefreshCw size={18} style={{ display: 'inline', marginRight: 8, verticalAlign: 'text-bottom' }} /> Settlement Summary</h4>
                                 {settlements.length === 0 ? (
-                                    <div style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>Everyone is fully settled up! 🎉</div>
+                                    <div style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>Everyone is fully settled up! <CheckCircle2 size={16} style={{ display: 'inline', marginLeft: 4, verticalAlign: 'text-bottom', color: '#22c55e' }} /></div>
                                 ) : (
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                         {settlements.map((s, i) => (
