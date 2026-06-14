@@ -109,6 +109,30 @@ export default function GroupsPage() {
         if (confirm('Delete this shared expense?')) await deleteSharedExpense(id);
     }
 
+    async function handleSettleUp(settlement) {
+        if (!confirm(`Record a payment of ${formatINR(settlement.amount)} from ${settlement.from === currentUser.email ? 'You' : settlement.from.split('@')[0]} to ${settlement.to === currentUser.email ? 'You' : settlement.to.split('@')[0]}?`)) return;
+        
+        try {
+            const payload = {
+                groupId: selectedGroup.id,
+                description: `Payment`,
+                amount: settlement.amount,
+                date: new Date().toISOString().split('T')[0],
+                budgetId: null,
+                splitType: 'CUSTOM',
+                payers: { [settlement.from]: settlement.amount },
+                splits: { [settlement.to]: settlement.amount },
+                participants: members,
+                members,
+                isSettlement: true
+            };
+            await addSharedExpense(payload);
+        } catch (error) {
+            console.error('Error settling up:', error);
+            alert('Failed to settle up.');
+        }
+    }
+
     function openExpModal(exp = null) {
         if (exp) {
             setEditingExp(exp);
@@ -204,16 +228,20 @@ export default function GroupsPage() {
                                         const payersList = Object.keys(exp.payers || {}).map(p => p.split('@')[0]).join(', ');
 
                                         return (
-                                            <div key={exp.id} className="split-row">
+                                            <div key={exp.id} className="split-row" style={exp.isSettlement ? { borderLeft: '4px solid #22c55e', background: 'rgba(34, 197, 94, 0.05)' } : {}}>
                                                 <div>
-                                                    <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{exp.description}</div>
-                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Paid by {payersList} · {exp.date}</div>
+                                                    <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>
+                                                        {exp.isSettlement ? `💸 Payment: ${Object.keys(exp.payers || {})[0]?.split('@')[0]} ➔ ${Object.keys(exp.splits || {})[0]?.split('@')[0]}` : exp.description}
+                                                    </div>
+                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                                        {exp.isSettlement ? '' : `Paid by ${payersList} · `}{exp.date}
+                                                    </div>
                                                 </div>
                                                 <div style={{ textAlign: 'right' }}>
-                                                    <div style={{ fontWeight: 700 }}>{formatINR(exp.amount)}</div>
-                                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>You owe {formatINR(myShare)}</div>
+                                                    <div style={{ fontWeight: 700, color: exp.isSettlement ? '#22c55e' : 'inherit' }}>{formatINR(exp.amount)}</div>
+                                                    {!exp.isSettlement && <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>You owe {formatINR(myShare)}</div>}
                                                     <div className="flex gap-2" style={{ justifyContent: 'flex-end', marginTop: 4 }}>
-                                                        <button className="btn-icon" onClick={() => openExpModal(exp)} style={{ padding: 4 }}><Pencil size={12} /></button>
+                                                        {!exp.isSettlement && <button className="btn-icon" onClick={() => openExpModal(exp)} style={{ padding: 4 }}><Pencil size={12} /></button>}
                                                         <button className="btn-icon" onClick={() => handleDeleteSharedExpense(exp.id)} style={{ padding: 4 }}><Trash2 size={12} /></button>
                                                     </div>
                                                 </div>
@@ -237,8 +265,19 @@ export default function GroupsPage() {
                                                     <ChevronRight size={14} style={{ color: 'var(--text-muted)' }} />
                                                     <span style={{ fontWeight: 600, color: s.to === currentUser.email ? '#22c55e' : 'inherit' }}>{s.to === currentUser.email ? 'You' : s.to.split('@')[0]}</span>
                                                 </div>
-                                                <div style={{ fontWeight: 700, color: s.to === currentUser.email ? '#22c55e' : (s.from === currentUser.email ? '#ef4444' : 'var(--text)') }}>
-                                                    {formatINR(s.amount)}
+                                                <div className="flex items-center gap-4">
+                                                    <div style={{ fontWeight: 700, color: s.to === currentUser.email ? '#22c55e' : (s.from === currentUser.email ? '#ef4444' : 'var(--text)') }}>
+                                                        {formatINR(s.amount)}
+                                                    </div>
+                                                    {(s.from === currentUser.email || s.to === currentUser.email) && (
+                                                        <button 
+                                                            className="btn btn-primary btn-sm" 
+                                                            style={{ padding: '6px 12px', fontSize: '0.75rem', borderRadius: '6px' }}
+                                                            onClick={() => handleSettleUp(s)}
+                                                        >
+                                                            Mark Paid
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}

@@ -5,6 +5,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis
 import { useAuth } from '../context/AuthContext';
 import { subscribeBudgets, subscribeExpenses, subscribeTrips, subscribeUserSharedExpenses, formatINR, catClass, CATEGORIES } from '../services';
 import BudgetRing from '../components/BudgetRing';
+import { optimizeSettlements } from '../utils/splitUtils';
 import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
@@ -73,7 +74,38 @@ export default function DashboardPage() {
         return months;
     })();
 
-    const recentExpenses = allExpenses.slice(0, 6);
+    const userSettlements = (() => {
+        const groupsMap = {};
+        sharedExpenses.forEach(exp => {
+            if (!groupsMap[exp.groupId]) groupsMap[exp.groupId] = [];
+            groupsMap[exp.groupId].push(exp);
+        });
+
+        const netOwes = {}; 
+        Object.values(groupsMap).forEach(groupExps => {
+            const members = Array.from(new Set(groupExps.flatMap(e => Object.keys(e.payers || {}).concat(Object.keys(e.splits || {})))));
+            const { settlements } = optimizeSettlements(groupExps, members);
+            settlements.forEach(s => {
+                if (s.from === currentUser.email) {
+                    netOwes[s.to] = (netOwes[s.to] || 0) - s.amount;
+                } else if (s.to === currentUser.email) {
+                    netOwes[s.from] = (netOwes[s.from] || 0) + s.amount;
+                }
+            });
+        });
+
+        const finalSettlements = [];
+        Object.entries(netOwes).forEach(([person, amount]) => {
+            if (amount > 0.01) {
+                finalSettlements.push({ type: 'OWED', person, amount });
+            } else if (amount < -0.01) {
+                finalSettlements.push({ type: 'OWES', person, amount: Math.abs(amount) });
+            }
+        });
+        return finalSettlements.sort((a, b) => b.amount - a.amount);
+    })();
+
+    const recentExpenses = allExpenses.slice(0, 10);
 
     return (
         <div className="dashboard-page">
@@ -152,21 +184,21 @@ export default function DashboardPage() {
                     </div>
                 </motion.div>
 
-                {/* 5. Budget Rings Row - Span 2 */}
-                <motion.div {...fadeUp(0.25)} className="bento-card bento-span-2">
+                {/* 5. Budget Overview - Span 1 */}
+                <motion.div {...fadeUp(0.25)} className="bento-card bento-span-1">
                     <h4 style={{ marginBottom: 16 }}>Budget Overview</h4>
                     {budgets.length === 0 ? (
                         <div className="chart-empty">No budgets created yet.</div>
                     ) : (
                         <div className="budget-rings-row">
-                            {budgets.slice(0, 5).map(b => {
+                            {budgets.map(b => {
                                 const spent = allExpenses
                                     .filter(e => e.budgetId === b.id)
                                     .reduce((s, e) => s + Number(e.amount || 0), 0);
                                 return (
-                                    <div key={b.id} className="budget-ring-item">
+                                    <div key={b.id} className="budget-ring-item" style={{ alignItems: 'flex-start' }}>
                                         <BudgetRing spent={spent} total={Number(b.totalAmount)} size={90} label={b.name} />
-                                        <div style={{ textAlign: 'center', marginTop: 4 }}>
+                                        <div style={{ marginTop: 4 }}>
                                             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
                                                 {formatINR(Number(b.totalAmount) - spent)} left
                                             </div>
@@ -174,6 +206,33 @@ export default function DashboardPage() {
                                     </div>
                                 );
                             })}
+                        </div>
+                    )}
+                </motion.div>
+
+                {/* 6. Settlements - Span 1 */}
+                <motion.div {...fadeUp(0.28)} className="bento-card bento-span-1">
+                    <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
+                        <h4>Settlements</h4>
+                        <button className="btn btn-ghost btn-sm" style={{ padding: '2px 8px', fontSize: '0.7rem' }} onClick={() => navigate('/groups')}>View</button>
+                    </div>
+                    {userSettlements.length === 0 ? (
+                        <div className="chart-empty" style={{ padding: '0', margin: 0, textAlign: 'left' }}>All settled up! 🎉</div>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {userSettlements.slice(0, 3).map((s, i) => (
+                                <div key={i} className="flex justify-between items-center" style={{ background: 'var(--bg-secondary)', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                                    <span style={{ fontSize: '0.85rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80px' }}>{s.person.split('@')[0]}</span>
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: s.type === 'OWED' ? '#22c55e' : '#ef4444', whiteSpace: 'nowrap' }}>
+                                        {s.type === 'OWED' ? 'owes' : 'owe'} {formatINR(s.amount)}
+                                    </div>
+                                </div>
+                            ))}
+                            {userSettlements.length > 3 && (
+                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                                    + {userSettlements.length - 3} more
+                                </div>
+                            )}
                         </div>
                     )}
                 </motion.div>
