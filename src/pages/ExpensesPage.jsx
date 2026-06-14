@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Receipt } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { subscribeExpenses, subscribeBudgets, subscribeTrips, subscribeUserSharedExpenses, addExpense, updateExpense, deleteExpense, CATEGORIES, catClass, formatINR } from '../services';
 import Modal from '../components/Modal';
@@ -104,7 +104,7 @@ export default function ExpensesPage() {
             {/* Table */}
             {filtered.length === 0 ? (
                 <div className="empty-state">
-                    <div className="empty-icon">🧾</div>
+                    <div className="empty-icon"><Receipt size={48} style={{ opacity: 0.5 }} /></div>
                     <p>No expenses found. {!search && !filterCat && !filterTrip && 'Add your first expense!'}</p>
                     {!search && !filterCat && !filterTrip && <button className="btn btn-primary" onClick={openNew}>Add Expense</button>}
                 </div>

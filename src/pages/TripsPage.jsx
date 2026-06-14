@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, MapPin, Calendar } from 'lucide-react';
+import { Plus, Pencil, Trash2, MapPin, Calendar, Plane } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { subscribeTrips, subscribeBudgets, subscribeExpenses, addTrip, updateTrip, deleteTrip, formatINR } from '../services';
 import Modal from '../components/Modal';
@@ -55,7 +55,7 @@ export default function TripsPage() {
 
             {trips.length === 0 ? (
                 <div className="empty-state">
-                    <div className="empty-icon">✈️</div>
+                    <div className="empty-icon"><Plane size={48} style={{ opacity: 0.5 }} /></div>
                     <p>No trips planned yet. Start your first adventure!</p>
                     <button className="btn btn-primary" onClick={openNew}>Plan a Trip</button>
                 </div>
@@ -78,7 +78,7 @@ export default function TripsPage() {
                                             <h4>{t.name}</h4>
                                         </div>
                                         <div className="trip-meta">
-                                            {t.destination && <span>📍 {t.destination}</span>}
+                                            {t.destination && <span><MapPin size={10} style={{ display: 'inline', marginRight: 2 }} />{t.destination}</span>}
                                             <span><Calendar size={10} style={{ display: 'inline' }} /> {t.startDate} → {t.endDate || 'Open-ended'}</span>
                                         </div>
                                     </div>

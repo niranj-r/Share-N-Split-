@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Wallet } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { subscribeBudgets, subscribeExpenses, subscribeUserSharedExpenses, addBudget, updateBudget, deleteBudget, formatINR } from '../services';
 import BudgetRing from '../components/BudgetRing';
@@ -174,7 +174,7 @@ export default function BudgetsPage() {
 function EmptyState({ message, onAction, actionLabel }) {
     return (
         <div className="empty-state">
-            <div className="empty-icon">💰</div>
+            <div className="empty-icon"><Wallet size={48} style={{ opacity: 0.5 }} /></div>
             <p>{message}</p>
             <button className="btn btn-primary" onClick={onAction}>{actionLabel}</button>
         </div>
