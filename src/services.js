@@ -65,9 +65,13 @@ export function deleteExpense(id) {
 }
 
 // ── Groups ─────────────────────────────────────────────
-export function subscribeGroups(uid, callback) {
-    const q = query(collection(db, 'groups'), where('createdBy', '==', uid), orderBy('createdAt', 'desc'));
-    return onSnapshot(q, snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+export function subscribeGroups(email, callback) {
+    const q = query(collection(db, 'groups'), where('members', 'array-contains', email));
+    return onSnapshot(q, snap => {
+        const groups = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        groups.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+        callback(groups);
+    });
 }
 
 export function addGroup(uid, data) {

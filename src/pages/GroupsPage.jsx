@@ -33,7 +33,7 @@ export default function GroupsPage() {
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        const u1 = subscribeGroups(currentUser.uid, (gs) => {
+        const u1 = subscribeGroups(currentUser?.email, (gs) => {
             setGroups(gs);
             if (gs.length > 0 && !selectedGroup) setSelectedGroup(gs[0]);
         });
