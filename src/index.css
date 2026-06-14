@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap');
 
 /* ─── ShareNSplit Design Tokens ─────────────────────────────── */
 :root {
@@ -522,3 +523,25 @@ p {
 .fade-up {
   animation: fade-up 0.5s ease both;
 }
+
+/* ─── Recharts Overrides ──────────────────────────────── */
+.recharts-sector, .recharts-pie-sector {
+  stroke: transparent !important;
+  stroke-width: 0 !important;
+}
+
+.recharts-tooltip-wrapper {
+  color: var(--text) !important;
+}
+
+.recharts-tooltip-item,
+.recharts-tooltip-item-name,
+.recharts-tooltip-item-value,
+.recharts-tooltip-item-separator {
+  color: var(--text) !important;
+}
+
+/* Ensure the custom tooltip text is white in dark mode */
+.custom-recharts-tooltip {
+  color: var(--text) !important;
+}

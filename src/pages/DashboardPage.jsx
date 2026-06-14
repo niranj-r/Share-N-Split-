@@ -275,10 +275,21 @@ export default function DashboardPage() {
                         <div className="flex-col h-full">
                             <ResponsiveContainer width="100%" height={160}>
                                 <PieChart>
-                                    <Pie data={catData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={4} dataKey="value" stroke="none">
-                                        {catData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="none" />)}
+                                    <Pie data={catData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={4} dataKey="value" stroke="none" strokeWidth={0}>
+                                        {catData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="none" strokeWidth={0} />)}
                                     </Pie>
-                                    <Tooltip formatter={(v) => formatINR(v)} contentStyle={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)', fontSize: 12 }} itemStyle={{ color: 'var(--text)' }} labelStyle={{ color: 'var(--text)' }} />
+                                    <Tooltip 
+                                        content={({ active, payload }) => {
+                                            if (active && payload && payload.length) {
+                                                return (
+                                                    <div className="custom-recharts-tooltip" style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 12, boxShadow: 'var(--shadow-card)' }}>
+                                                        {payload[0].name} : {formatINR(payload[0].value)}
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        }}
+                                    />
                                 </PieChart>
                             </ResponsiveContainer>
                             <div className="pie-legend">

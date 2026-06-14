@@ -42,10 +42,10 @@ export default function BudgetRing({ spent = 0, total = 1, size = 120, strokeWid
                 />
                 {/* Centre text */}
                 <g style={{ transform: 'rotate(90deg)', transformOrigin: '50px 50px' }}>
-                    <text x="50" y="47" textAnchor="middle" fill="var(--text)" fontSize="14" fontWeight="700" fontFamily="Bricolage Grotesque, sans-serif">
+                    <text x="50" y="47" textAnchor="middle" fill="var(--text)" fontSize="14" fontWeight="700" fontFamily="var(--font-heading)">
                         {Math.round(leftPct)}%
                     </text>
-                    <text x="50" y="60" textAnchor="middle" fill="var(--text-muted)" fontSize="9" fontFamily="Bricolage Grotesque, sans-serif">
+                    <text x="50" y="60" textAnchor="middle" fill="var(--text-muted)" fontSize="9" fontFamily="var(--font-heading)">
                         left
                     </text>
                 </g>
