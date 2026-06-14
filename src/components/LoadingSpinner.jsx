@@ -46,11 +46,11 @@ export default function LoadingSpinner() {
                     style={{
                         position: 'relative',
                         zIndex: 1,
-                        filter: 'drop-shadow(0 0 10px rgba(255,51,0,0.5))'
+                        /*filter: 'drop-shadow(0 0 10px rgba(255,51,0,0.5))'*/
                     }}
                     animate={{
                         y: [0, -8, 0],
-                        filter: ['drop-shadow(0 0 10px rgba(255,51,0,0.5))', 'drop-shadow(0 0 25px rgba(255,51,0,0.9))', 'drop-shadow(0 0 10px rgba(255,51,0,0.5))']
+                        /*filter: ['drop-shadow(0 0 10px rgba(255,51,0,0.5))', 'drop-shadow(0 0 25px rgba(255,51,0,0.9))', 'drop-shadow(0 0 10px rgba(255,51,0,0.5))']*/
                     }}
                     transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
                 />
