@@ -117,10 +117,10 @@ export default function DashboardPage() {
                     <p>Good {getGreeting()}, {currentUser.displayName?.split(' ')[0]} 👋</p>
                 </div>
                 <div className="flex gap-2">
-                    <button className="btn btn-ghost btn-sm" onClick={() => navigate('/budgets')}>
+                    <button className="btn btn-ghost" onClick={() => navigate('/budgets')}>
                         <Wallet size={15} /> New Budget
                     </button>
-                    <button className="btn btn-primary btn-sm" onClick={() => navigate('/expenses')}>
+                    <button className="btn btn-primary" onClick={() => navigate('/expenses')}>
                         <Plus size={15} /> Add Expense
                     </button>
                 </div>
@@ -214,7 +214,7 @@ export default function DashboardPage() {
                 <motion.div {...fadeUp(0.28)} className="bento-card bento-span-1">
                     <div className="flex items-center justify-between" style={{ marginBottom: 16 }}>
                         <h4>Settlements</h4>
-                        <button className="btn btn-ghost btn-sm" style={{ padding: '2px 8px', fontSize: '0.7rem' }} onClick={() => navigate('/groups')}>View</button>
+                        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/groups')}>View</button>
                     </div>
                     {userSettlements.length === 0 ? (
                         <div className="chart-empty" style={{ padding: '0', margin: 0, textAlign: 'left' }}>All settled up! <CheckCircle2 size={16} style={{ display: 'inline', marginLeft: 4, verticalAlign: 'text-bottom', color: '#22c55e' }} /></div>
@@ -276,9 +276,9 @@ export default function DashboardPage() {
                             <ResponsiveContainer width="100%" height={160}>
                                 <PieChart>
                                     <Pie data={catData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={4} dataKey="value" stroke="none">
-                                        {catData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                                        {catData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} stroke="none" />)}
                                     </Pie>
-                                    <Tooltip formatter={(v) => formatINR(v)} contentStyle={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)', fontSize: 12 }} />
+                                    <Tooltip formatter={(v) => formatINR(v)} contentStyle={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)', fontSize: 12 }} itemStyle={{ color: 'var(--text)' }} labelStyle={{ color: 'var(--text)' }} />
                                 </PieChart>
                             </ResponsiveContainer>
                             <div className="pie-legend">
@@ -303,7 +303,7 @@ export default function DashboardPage() {
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                             <XAxis dataKey="name" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
                             <YAxis hide domain={[0, 'dataMax']} />
-                            <Tooltip formatter={(v) => formatINR(v)} cursor={{ fill: 'rgba(255,255,255,0.04)' }} contentStyle={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)', fontSize: 12 }} />
+                            <Tooltip formatter={(v) => formatINR(v)} cursor={{ fill: 'rgba(255,255,255,0.04)' }} contentStyle={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text)', fontSize: 12 }} itemStyle={{ color: 'var(--text)' }} labelStyle={{ color: 'var(--text)' }} />
                             <Bar dataKey="amount" fill="var(--text-muted)" radius={[4, 4, 0, 0]}>
                                 {monthlyData.map((d, i) => (
                                     <Cell key={i} fill={i === monthlyData.length - 1 ? 'var(--accent)' : 'var(--border)'} />
