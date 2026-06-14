@@ -81,7 +81,7 @@ export default function DashboardPage() {
             groupsMap[exp.groupId].push(exp);
         });
 
-        const netOwes = {}; 
+        const netOwes = {};
         Object.values(groupsMap).forEach(groupExps => {
             const members = Array.from(new Set(groupExps.flatMap(e => Object.keys(e.payers || {}).concat(Object.keys(e.splits || {})))));
             const { settlements } = optimizeSettlements(groupExps, members);
@@ -114,7 +114,7 @@ export default function DashboardPage() {
                 <div>
                     <div className="accent-line" />
                     <h1>Dashboard</h1>
-                    <p>Good {getGreeting()}, {currentUser.displayName?.split(' ')[0]} <Hand size={16} style={{ display: 'inline', marginLeft: 4 }} /></p>
+                    <p>Good {getGreeting()}, {currentUser.displayName?.split(' ')[0]} 👋</p>
                 </div>
                 <div className="flex gap-2">
                     <button className="btn btn-ghost btn-sm" onClick={() => navigate('/budgets')}>
