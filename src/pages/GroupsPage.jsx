@@ -28,6 +28,7 @@ export default function GroupsPage() {
     const [groupModal, setGroupModal] = useState(false);
     const [expModal, setExpModal] = useState(false);
     const [editingExp, setEditingExp] = useState(null);
+    const [settleModal, setSettleModal] = useState(null);
     const [groupForm, setGroupForm] = useState({ name: '', description: '', members: '' });
     const [expForm, setExpForm] = useState({ ...INITIAL_EXP_FORM, payers: { [currentUser?.email || '']: '' } });
     const [saving, setSaving] = useState(false);
@@ -109,27 +110,30 @@ export default function GroupsPage() {
         if (confirm('Delete this shared expense?')) await deleteSharedExpense(id);
     }
 
-    async function handleSettleUp(settlement) {
-        if (!confirm(`Record a payment of ${formatINR(settlement.amount)} from ${settlement.from === currentUser.email ? 'You' : settlement.from.split('@')[0]} to ${settlement.to === currentUser.email ? 'You' : settlement.to.split('@')[0]}?`)) return;
-        
+    async function handleSettleUp() {
+        if (!settleModal) return;
+        setSaving(true);
         try {
             const payload = {
                 groupId: selectedGroup.id,
                 description: `Payment`,
-                amount: settlement.amount,
+                amount: settleModal.amount,
                 date: new Date().toISOString().split('T')[0],
                 budgetId: null,
                 splitType: 'CUSTOM',
-                payers: { [settlement.from]: settlement.amount },
-                splits: { [settlement.to]: settlement.amount },
+                payers: { [settleModal.from]: settleModal.amount },
+                splits: { [settleModal.to]: settleModal.amount },
                 participants: members,
                 members,
                 isSettlement: true
             };
             await addSharedExpense(payload);
+            setSettleModal(null);
         } catch (error) {
             console.error('Error settling up:', error);
             alert('Failed to settle up.');
+        } finally {
+            setSaving(false);
         }
     }
 
@@ -273,7 +277,7 @@ export default function GroupsPage() {
                                                         <button 
                                                             className="btn btn-primary btn-sm" 
                                                             style={{ padding: '6px 12px', fontSize: '0.75rem', borderRadius: '6px' }}
-                                                            onClick={() => handleSettleUp(s)}
+                                                            onClick={() => setSettleModal(s)}
                                                         >
                                                             Mark Paid
                                                         </button>
@@ -305,6 +309,23 @@ export default function GroupsPage() {
                         <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Creating...' : 'Create Group'}</button>
                     </div>
                 </form>
+            </Modal>
+
+            {/* Settle Up Confirmation Modal */}
+            <Modal isOpen={!!settleModal} onClose={() => setSettleModal(null)} title="Confirm Payment" style={{ maxWidth: '400px' }}>
+                {settleModal && (
+                    <div className="modal-form">
+                        <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', marginBottom: '20px', lineHeight: '1.5' }}>
+                            Record a payment of <strong style={{ color: 'var(--text)' }}>{formatINR(settleModal.amount)}</strong> from <strong style={{ color: 'var(--text)' }}>{settleModal.from === currentUser.email ? 'You' : settleModal.from.split('@')[0]}</strong> to <strong style={{ color: 'var(--text)' }}>{settleModal.to === currentUser.email ? 'You' : settleModal.to.split('@')[0]}</strong>?
+                        </p>
+                        <div className="modal-actions">
+                            <button type="button" className="btn btn-ghost" onClick={() => setSettleModal(null)}>Cancel</button>
+                            <button type="button" className="btn btn-primary" onClick={handleSettleUp} disabled={saving}>
+                                {saving ? 'Recording...' : 'Confirm Payment'}
+                            </button>
+                        </div>
+                    </div>
+                )}
             </Modal>
 
             {/* Advanced Shared Expense Modal */}
