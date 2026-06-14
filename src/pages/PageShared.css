@@ -225,7 +225,7 @@
 }
 
 .expense-table tr:hover td {
-    background: var(--bg-secondary);
+    background: var(--hover-bg);
 }
 
 .exp-amount {
