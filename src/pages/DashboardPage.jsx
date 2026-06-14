@@ -114,7 +114,7 @@ export default function DashboardPage() {
                 <div>
                     <div className="accent-line" />
                     <h1>Dashboard</h1>
-                    <p>Good {getGreeting()}, {currentUser.displayName?.split(' ')[0]} <Hand size={16} style={{ display: 'inline', marginLeft: 4 }} /></p>
+                    <p>Good {getGreeting()}, {currentUser.displayName?.split(' ')[0]} 👋</p>
                 </div>
                 <div className="flex gap-2">
                     <button className="btn btn-ghost" onClick={() => navigate('/budgets')}>
