@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { TrendingDown, TrendingUp, Wallet, MapPin, Plus, Hand, CheckCircle2 } from 'lucide-react';
+import { TrendingDown, TrendingUp, Wallet, MapPin, Plus, Hand, CheckCircle2, Camera } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { useAuth } from '../context/AuthContext';
 import { subscribeBudgets, subscribeExpenses, subscribeTrips, subscribeUserSharedExpenses, formatINR, catClass, CATEGORIES } from '../services';
@@ -117,6 +117,9 @@ export default function DashboardPage() {
                     <p>Good {getGreeting()}, {currentUser.displayName?.split(' ')[0]} 👋</p>
                 </div>
                 <div className="flex gap-2">
+                    <button className="btn btn-primary" onClick={() => navigate('/scan')} style={{ background: 'var(--accent)', borderColor: 'var(--accent)' }}>
+                        <Camera size={15} /> Scan Bill
+                    </button>
                     <button className="btn btn-ghost" onClick={() => navigate('/budgets')}>
                         <Wallet size={15} /> New Budget
                     </button>

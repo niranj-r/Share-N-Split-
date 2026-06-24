@@ -508,6 +508,10 @@ p {
   }
 }
 
+.spinning {
+  animation: spin-slow 1s linear infinite;
+}
+
 @keyframes fade-up {
   from {
     opacity: 0;

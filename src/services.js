@@ -131,3 +131,28 @@ export function formatINR(amount) {
 export function formatDate(dateStr) {
     return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
+
+// ── Smart Bills (OCR & Smart Split) ────────────────────
+export function subscribeSmartBills(uid, callback) {
+    const q = query(collection(db, 'smartBills'), where('creatorId', '==', uid), orderBy('createdAt', 'desc'));
+    return onSnapshot(q, snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+}
+
+export function subscribeSmartBill(id, callback) {
+    return onSnapshot(doc(db, 'smartBills', id), snap => {
+        if (snap.exists()) callback({ id: snap.id, ...snap.data() });
+        else callback(null);
+    });
+}
+
+export async function addSmartBill(uid, data) {
+    return addDoc(collection(db, 'smartBills'), { ...data, creatorId: uid, createdAt: serverTimestamp() });
+}
+
+export function updateSmartBill(id, data) {
+    return updateDoc(doc(db, 'smartBills', id), data);
+}
+
+export function deleteSmartBill(id) {
+    return deleteDoc(doc(db, 'smartBills', id));
+}

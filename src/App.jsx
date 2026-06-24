@@ -17,6 +17,8 @@ import ExpensesPage from './pages/ExpensesPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import GroupsPage from './pages/GroupsPage';
 import SettingsPage from './pages/SettingsPage';
+import ScanBillPage from './pages/ScanBillPage';
+import BillDetailsPage from './pages/BillDetailsPage';
 
 // Animated page wrapper
 function PageWrapper({ children }) {
@@ -58,6 +60,7 @@ function AppShell({ theme, toggleTheme }) {
             <Route path="/analytics" element={<PageWrapper><AnalyticsPage /></PageWrapper>} />
             <Route path="/groups" element={<PageWrapper><GroupsPage /></PageWrapper>} />
             <Route path="/settings" element={<PageWrapper><SettingsPage theme={theme} toggleTheme={toggleTheme} /></PageWrapper>} />
+            <Route path="/scan" element={<PageWrapper><ScanBillPage /></PageWrapper>} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </AnimatePresence>
@@ -79,6 +82,7 @@ function AppRoutes({ theme, toggleTheme }) {
       <Routes location={location} key={location.pathname}>
         <Route path="/login" element={<PublicRoute><PageWrapper><LoginPage /></PageWrapper></PublicRoute>} />
         <Route path="/register" element={<PublicRoute><PageWrapper><RegisterPage /></PageWrapper></PublicRoute>} />
+        <Route path="/bill/:id" element={<PageWrapper><BillDetailsPage /></PageWrapper>} />
         <Route path="/*" element={<AppShell theme={theme} toggleTheme={toggleTheme} />} />
       </Routes>
     </AnimatePresence>
