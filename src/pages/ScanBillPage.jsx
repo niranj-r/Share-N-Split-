@@ -319,7 +319,7 @@ export default function ScanBillPage() {
                         <input type="number" className="input-field" value={taxes} onChange={(e) => setTaxes(e.target.value)} />
                     </div>
                     <div className="input-group">
-                        <label>Service Charge</label>
+                        <label>Fees & Charges</label>
                         <input type="number" className="input-field" value={serviceCharge} onChange={(e) => setServiceCharge(e.target.value)} />
                     </div>
                     <div className="input-group">
