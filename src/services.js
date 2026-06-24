@@ -134,8 +134,12 @@ export function formatDate(dateStr) {
 
 // ── Smart Bills (OCR & Smart Split) ────────────────────
 export function subscribeSmartBills(uid, callback) {
-    const q = query(collection(db, 'smartBills'), where('creatorId', '==', uid), orderBy('createdAt', 'desc'));
-    return onSnapshot(q, snap => callback(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    const q = query(collection(db, 'smartBills'), where('creatorId', '==', uid));
+    return onSnapshot(q, snap => {
+        const bills = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        bills.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+        callback(bills);
+    });
 }
 
 export function subscribeSmartBill(id, callback) {

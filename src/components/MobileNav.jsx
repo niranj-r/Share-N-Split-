@@ -1,11 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Wallet, MapPin, Receipt, BarChart3, Users } from 'lucide-react';
+import { LayoutDashboard, Wallet, MapPin, Receipt, BarChart3, Users, ScanLine } from 'lucide-react';
 import './MobileNav.css';
 
 const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Dash' },
     { to: '/budgets', icon: Wallet, label: 'Budgets' },
+    { to: '/smart-bills', icon: ScanLine, label: 'Scan' },
     { to: '/groups', icon: Users, label: 'Groups' },
     { to: '/trips', icon: MapPin, label: 'Trips' }
 ];

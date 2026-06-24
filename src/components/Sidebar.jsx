@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     LayoutDashboard, Wallet, MapPin, Receipt, BarChart3,
-    Users, Settings, Menu, X
+    Users, Settings, Menu, X, ScanLine
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import './Sidebar.css';
@@ -13,6 +13,7 @@ const navItems = [
     { to: '/budgets', icon: Wallet, label: 'Budgets' },
     { to: '/trips', icon: MapPin, label: 'Trips' },
     { to: '/expenses', icon: Receipt, label: 'Expenses' },
+    { to: '/smart-bills', icon: ScanLine, label: 'Smart Bills' },
     { to: '/analytics', icon: BarChart3, label: 'Analytics' },
     { to: '/groups', icon: Users, label: 'Groups' },
 ];

@@ -18,6 +18,7 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import GroupsPage from './pages/GroupsPage';
 import SettingsPage from './pages/SettingsPage';
 import ScanBillPage from './pages/ScanBillPage';
+import SmartBillsHistoryPage from './pages/SmartBillsHistoryPage';
 import BillDetailsPage from './pages/BillDetailsPage';
 
 // Animated page wrapper
@@ -61,6 +62,7 @@ function AppShell({ theme, toggleTheme }) {
             <Route path="/groups" element={<PageWrapper><GroupsPage /></PageWrapper>} />
             <Route path="/settings" element={<PageWrapper><SettingsPage theme={theme} toggleTheme={toggleTheme} /></PageWrapper>} />
             <Route path="/scan" element={<PageWrapper><ScanBillPage /></PageWrapper>} />
+            <Route path="/smart-bills" element={<PageWrapper><SmartBillsHistoryPage /></PageWrapper>} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </AnimatePresence>
